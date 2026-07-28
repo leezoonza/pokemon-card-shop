@@ -35,6 +35,7 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-security-oauth2-resource-server")
 
 	implementation("org.jetbrains.kotlin:kotlin-reflect")
+	implementation("io.github.oshai:kotlin-logging:8.0.4")
 	implementation("tools.jackson.module:jackson-module-kotlin")
 
 	implementation("org.springframework.modulith:spring-modulith-starter-core")
