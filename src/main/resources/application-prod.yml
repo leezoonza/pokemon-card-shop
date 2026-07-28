@@ -1,0 +1,38 @@
+spring:
+  jpa:
+    show-sql: false
+    hibernate:
+      ddl-auto: validate
+
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  data:
+    redis:
+      host: ${REDIS_HOST}
+      port: ${REDIS_PORT}
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_CLIENT_ID}
+            client-secret: ${GOOGLE_CLIENT_SECRET}
+
+app:
+  auth:
+    redirect:
+      login-uri: ${REDIRECT_LOGIN_URI}
+      signup-uri: ${REDIRECT_SIGNUP_URI}
+      failure-uri: ${REDIRECT_FAILURE_URI}
+
+    token:
+      access-token:
+        secret: ${ACCESS_TOKEN_SECRET}
+        ttl: ${ACCESS_TOKEN_TTL}
+      refresh-token:
+        ttl: ${REFRESH_TOKEN_TTL}

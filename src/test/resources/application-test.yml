@@ -1,0 +1,23 @@
+spring:
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        highlight_sql: true
+    hibernate:
+      ddl-auto: create-drop
+
+app:
+  auth:
+    redirect:
+      login-uri: http://localhost/login
+      signup-uri: http://localhost/signup
+      failure-uri: http://localhost/login/error
+
+    token:
+      access-token:
+        secret: integration-test-secret-key-with-32-bytes
+        ttl: 10m
+      refresh-token:
+        ttl: 7d

@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: pokemon-card-shop
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            scope:
+              - openid
