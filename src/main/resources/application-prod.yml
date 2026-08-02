@@ -24,10 +24,13 @@ spring:
             client-secret: ${GOOGLE_CLIENT_SECRET}
 
 app:
+  cors:
+    allowed-origin: ${CORS_ALLOWED_ORIGIN}
+
   auth:
     redirect:
-      login-uri: ${REDIRECT_LOGIN_URI}
       signup-uri: ${REDIRECT_SIGNUP_URI}
+      login-uri: ${REDIRECT_LOGIN_URI}
       failure-uri: ${REDIRECT_FAILURE_URI}
 
     token:

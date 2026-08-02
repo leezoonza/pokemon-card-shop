@@ -8,11 +8,22 @@ spring:
     hibernate:
       ddl-auto: create-drop
 
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: test-client-id
+            client-secret: test-client-secret
+
 app:
+  cors:
+    allowed-origin: http://localhost:3000
+
   auth:
     redirect:
-      login-uri: http://localhost/login
       signup-uri: http://localhost/signup
+      login-uri: http://localhost/login
       failure-uri: http://localhost/login/error
 
     token:
