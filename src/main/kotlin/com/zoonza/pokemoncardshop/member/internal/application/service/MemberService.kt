@@ -21,17 +21,22 @@ class MemberService(
 
     @Transactional
     override fun register(command: MemberRegisterCommand): MemberRegisterResult {
-        validateUniqueNickname(command.nickname)
+        val nickname = Nickname(command.nickname)
+
+        validateUniqueNickname(nickname)
 
         val member = Member.register(
-            command.nickname,
+            nickname,
             MemberRole.MEMBER,
             command.createdAt,
         )
 
         val saved = memberRepository.save(member)
 
-        return MemberRegisterResult(saved.id, saved.role)
+        return MemberRegisterResult(
+            saved.id,
+            saved.role.value
+        )
     }
 
     private fun validateUniqueNickname(nickname: Nickname) {

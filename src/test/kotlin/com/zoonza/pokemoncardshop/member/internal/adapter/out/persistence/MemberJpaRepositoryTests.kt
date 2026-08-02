@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Import(MySqlTestcontainersConfiguration::class)
 @ActiveProfiles("test")
@@ -25,7 +25,7 @@ class MemberJpaRepositoryTests @Autowired constructor(
     @Test
     fun `회원을 저장하고 모든 속성을 조회한다`() {
         val nickname = Nickname("피카츄")
-        val createdAt = LocalDateTime.of(2026, 7, 31, 12, 30)
+        val createdAt = Instant.parse("2026-07-31T03:30:00Z")
         val saved = repository.saveAndFlush(
             Member.register(nickname, MemberRole.ADMIN, createdAt),
         )
@@ -50,7 +50,7 @@ class MemberJpaRepositoryTests @Autowired constructor(
             Member.register(
                 nickname = nickname,
                 role = MemberRole.MEMBER,
-                createdAt = LocalDateTime.of(2026, 7, 31, 12, 30),
+                createdAt = Instant.parse("2026-07-31T03:30:00Z"),
             ),
         )
 

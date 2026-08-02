@@ -10,7 +10,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.verify
 import org.junit.jupiter.api.Test
-import java.time.LocalDateTime
+import java.time.Instant
 
 class MemberServiceTests {
 
@@ -46,7 +46,7 @@ class MemberServiceTests {
     @Test
     fun `사용 가능한 닉네임으로 일반 회원을 가입시킨다`() {
         val nickname = Nickname("피카츄")
-        val createdAt = LocalDateTime.of(2026, 7, 31, 12, 30)
+        val createdAt = Instant.parse("2026-07-31T03:30:00Z")
         val memberSlot = slot<Member>()
         val savedMember = persistedMember(
             id = 42L,
@@ -58,13 +58,13 @@ class MemberServiceTests {
 
         val result = memberService.register(
             MemberRegisterCommand(
-                nickname = nickname,
+                nickname = nickname.value,
                 createdAt = createdAt,
             ),
         )
 
         result.memberId shouldBe 42L
-        result.role shouldBe MemberRole.MEMBER
+        result.role shouldBe "MEMBER"
 
         memberSlot.captured.nickname shouldBe nickname
         memberSlot.captured.role shouldBe MemberRole.MEMBER
@@ -76,6 +76,24 @@ class MemberServiceTests {
     }
 
     @Test
+    fun `올바르지 않은 닉네임으로 가입할 수 없다`() {
+        val exception = shouldThrow<DomainException> {
+            memberService.register(
+                MemberRegisterCommand(
+                    nickname = "피",
+                    createdAt = Instant.parse("2026-07-31T03:30:00Z"),
+                ),
+            )
+        }
+
+        exception.errorCode shouldBe MemberErrorCode.INVALID_NICKNAME
+        verify(exactly = 0) {
+            memberRepository.existsByNickname(any())
+            memberRepository.save(any())
+        }
+    }
+
+    @Test
     fun `이미 사용 중인 닉네임으로 가입할 수 없다`() {
         val nickname = Nickname("피카츄")
 
@@ -84,8 +102,8 @@ class MemberServiceTests {
         val exception = shouldThrow<DomainException> {
             memberService.register(
                 MemberRegisterCommand(
-                    nickname = nickname,
-                    createdAt = LocalDateTime.of(2026, 7, 31, 12, 30),
+                    nickname = nickname.value,
+                    createdAt = Instant.parse("2026-07-31T03:30:00Z"),
                 ),
             )
         }
@@ -99,14 +117,14 @@ class MemberServiceTests {
     private fun persistedMember(
         id: Long,
         nickname: Nickname,
-        createdAt: LocalDateTime,
+        createdAt: Instant,
     ): Member {
         val constructor = Member::class.java.getDeclaredConstructor(
             Long::class.javaPrimitiveType,
             Nickname::class.java,
             MemberRole::class.java,
-            LocalDateTime::class.java,
-            LocalDateTime::class.java,
+            Instant::class.java,
+            Instant::class.java,
         )
         constructor.isAccessible = true
 

@@ -1,9 +1,8 @@
 package com.zoonza.pokemoncardshop.member.api
 
-import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
-import java.time.LocalDateTime
+import java.time.Instant
 
 data class MemberRegisterCommand(
-    val nickname: Nickname,
-    val createdAt: LocalDateTime,
+    val nickname: String,
+    val createdAt: Instant,
 )

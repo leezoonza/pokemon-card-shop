@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.member.internal.domain
 
 import jakarta.persistence.*
-import java.time.LocalDateTime
+import java.time.Instant
 
 @Entity
 class Member private constructor(
@@ -17,16 +17,16 @@ class Member private constructor(
     val role: MemberRole,
 
     @Column(nullable = false)
-    val createdAt: LocalDateTime,
+    val createdAt: Instant,
 
     @Column(nullable = false)
-    var lastLoginAt: LocalDateTime
+    var lastLoginAt: Instant
 ) {
     companion object {
         fun register(
             nickname: Nickname,
             role: MemberRole,
-            createdAt: LocalDateTime
+            createdAt: Instant
         ): Member =
             Member(
                 nickname = nickname,
