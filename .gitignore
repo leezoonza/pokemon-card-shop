@@ -48,5 +48,6 @@ bin/
 *.icloud
 
 ### Project ###
+front
 application-local.yml
 AGENTS.md
