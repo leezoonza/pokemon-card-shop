@@ -24,6 +24,5 @@ class ExternalIdentityTests {
         identity.subject shouldBe "google-subject"
         identity.memberId shouldBe 42L
         identity.createdAt shouldBe createdAt
-        identity.lastAuthenticatedAt shouldBe createdAt
     }
 }

@@ -4,6 +4,7 @@ import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthTokens
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAccessToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
 import com.zoonza.pokemoncardshop.global.exception.GlobalExceptionHandler
 import io.mockk.*
@@ -20,12 +21,14 @@ import java.time.Duration
 class AuthControllerTests {
 
     private val signupUseCase = mockk<SignupUseCase>()
+    private val loginUseCase = mockk<LoginUseCase>()
     private val refreshTokenCookieManager = mockk<RefreshTokenCookieManager>()
     private val identityTicketCookieManager = mockk<IdentityTicketCookieManager>()
     private val mockMvc: MockMvc = MockMvcBuilders
         .standaloneSetup(
             AuthController(
                 signupUseCase,
+                loginUseCase,
                 refreshTokenCookieManager,
                 identityTicketCookieManager,
             ),
@@ -81,5 +84,30 @@ class AuthControllerTests {
         verify(exactly = 0) { signupUseCase.signup(any()) }
         verify(exactly = 0) { identityTicketCookieManager.clear(any()) }
         verify(exactly = 0) { refreshTokenCookieManager.write(any(), any()) }
+    }
+
+    @Test
+    fun `신원 티켓으로 로그인하고 액세스 토큰을 응답한다`() {
+        val tokens = AuthTokens(
+            accessToken = IssuedAccessToken("access-token"),
+            refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
+        )
+        every { loginUseCase.login("identity-ticket") } returns tokens
+        every { identityTicketCookieManager.clear(any()) } just Runs
+        every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
+
+        mockMvc.perform(
+            post("/api/auth/login")
+                .cookie(MockCookie(IdentityTicketCookieManager.COOKIE_NAME, "identity-ticket")),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+
+        verify(exactly = 1) { loginUseCase.login("identity-ticket") }
+        verify(exactly = 1) { identityTicketCookieManager.clear(any()) }
+        verify(exactly = 1) {
+            refreshTokenCookieManager.write(any(), tokens.refreshToken)
+        }
     }
 }

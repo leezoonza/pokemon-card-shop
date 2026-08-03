@@ -30,10 +30,7 @@ class ExternalIdentity private constructor(
     val memberId: Long,
 
     @Column(nullable = false)
-    val createdAt: Instant,
-
-    @Column(nullable = false)
-    var lastAuthenticatedAt: Instant
+    val createdAt: Instant
 ) {
     companion object {
         fun register(
@@ -46,8 +43,7 @@ class ExternalIdentity private constructor(
                 provider = provider,
                 subject = subject,
                 memberId = memberId,
-                createdAt = createdAt,
-                lastAuthenticatedAt = createdAt
+                createdAt = createdAt
             )
     }
 }

@@ -4,4 +4,6 @@ interface ExternalIdentityRepository {
     fun existsByProviderAndSubject(provider: IdentityProvider, subject: String): Boolean
 
     fun save(externalIdentity: ExternalIdentity): ExternalIdentity
+
+    fun findByProviderAndSubject(provider: IdentityProvider, subject: String): ExternalIdentity?
 }

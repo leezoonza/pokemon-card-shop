@@ -6,4 +6,6 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface ExternalIdentityJpaRepository : JpaRepository<ExternalIdentity, Long> {
     fun existsByProviderAndSubject(provider: IdentityProvider, subject: String): Boolean
+
+    fun findByProviderAndSubject(provider: IdentityProvider, subject: String): ExternalIdentity?
 }

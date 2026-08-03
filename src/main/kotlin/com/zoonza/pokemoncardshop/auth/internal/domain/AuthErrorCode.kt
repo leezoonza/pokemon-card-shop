@@ -25,4 +25,10 @@ enum class AuthErrorCode(
         "리프레시 토큰이 유효하지 않거나 만료되었습니다.",
         401,
     ),
+
+    EXTERNAL_IDENTITY_NOT_FOUND(
+        "AUTH-004",
+        "외부 인증 정보를 찾을 수 없습니다.",
+        404,
+    ),
 }

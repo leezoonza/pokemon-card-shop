@@ -3,6 +3,7 @@ package com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence
 import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository
 
 @Repository
@@ -16,5 +17,9 @@ class JpaMemberRepositoryAdapter(
 
     override fun save(member: Member): Member {
         return repository.save(member)
+    }
+
+    override fun findById(id: Long): Member? {
+        return repository.findByIdOrNull(id)
     }
 }

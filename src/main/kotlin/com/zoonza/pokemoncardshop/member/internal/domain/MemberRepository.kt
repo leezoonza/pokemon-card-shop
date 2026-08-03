@@ -4,4 +4,6 @@ interface MemberRepository {
     fun existsByNickname(nickname: Nickname): Boolean
 
     fun save(member: Member): Member
+
+    fun findById(id: Long): Member?
 }

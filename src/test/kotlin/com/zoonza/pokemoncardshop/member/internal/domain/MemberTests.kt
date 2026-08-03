@@ -1,6 +1,7 @@
 package com.zoonza.pokemoncardshop.member.internal.domain
 
 import io.kotest.matchers.shouldBe
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.Instant
@@ -20,5 +21,20 @@ class MemberTests {
         member.role shouldBe role
         member.createdAt shouldBe createdAt
         member.lastLoginAt shouldBe createdAt
+    }
+
+    @Test
+    fun `로그인 시각을 마지막 로그인 시각으로 기록한다`() {
+        val createdAt = Instant.parse("2026-07-31T03:30:00Z")
+        val loggedInAt = Instant.parse("2026-08-04T04:00:00Z")
+        val member = Member.register(
+            nickname = Nickname("피카츄"),
+            role = MemberRole.MEMBER,
+            createdAt = createdAt,
+        )
+
+        member.recordLogin(loggedInAt)
+
+        member.lastLoginAt shouldBe loggedInAt
     }
 }

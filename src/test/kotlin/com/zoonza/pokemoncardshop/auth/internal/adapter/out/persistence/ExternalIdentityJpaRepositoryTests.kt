@@ -43,7 +43,6 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
         found.subject shouldBe "google-subject"
         found.memberId shouldBe 42L
         found.createdAt shouldBe createdAt
-        found.lastAuthenticatedAt shouldBe createdAt
     }
 
     @Test
@@ -65,5 +64,28 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
             IdentityProvider.GOOGLE,
             "different-subject",
         ) shouldBe false
+    }
+
+    @Test
+    fun `제공자와 식별자로 외부 신원을 조회한다`() {
+        val saved = repository.saveAndFlush(
+            ExternalIdentity.register(
+                provider = IdentityProvider.GOOGLE,
+                subject = "google-subject",
+                memberId = 42L,
+                createdAt = Instant.parse("2026-08-02T03:00:00Z"),
+            ),
+        )
+
+        entityManager.clear()
+
+        repository.findByProviderAndSubject(
+            IdentityProvider.GOOGLE,
+            "google-subject",
+        )?.id shouldBe saved.id
+        repository.findByProviderAndSubject(
+            IdentityProvider.GOOGLE,
+            "unknown-subject",
+        ) shouldBe null
     }
 }

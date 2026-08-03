@@ -18,5 +18,11 @@ enum class MemberErrorCode(
         "MEMBER-002",
         "이미 사용 중인 닉네임입니다.",
         409
-    );
+    ),
+
+    MEMBER_NOT_FOUND(
+        "MEMBER-003",
+        "회원 정보를 찾을 수 없습니다.",
+        404,
+    ),
 }

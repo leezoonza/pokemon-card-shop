@@ -23,8 +23,12 @@ class Member private constructor(
     val createdAt: Instant,
 
     @Column(nullable = false)
-    var lastLoginAt: Instant
+    var lastLoginAt: Instant,
 ) {
+    fun recordLogin(loggedInAt: Instant) {
+        lastLoginAt = loggedInAt
+    }
+
     companion object {
         fun register(
             nickname: Nickname,

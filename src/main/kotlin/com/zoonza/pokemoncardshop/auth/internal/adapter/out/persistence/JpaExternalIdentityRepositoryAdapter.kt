@@ -17,4 +17,8 @@ class JpaExternalIdentityRepositoryAdapter(
     override fun save(externalIdentity: ExternalIdentity): ExternalIdentity {
         return repository.save(externalIdentity)
     }
+
+    override fun findByProviderAndSubject(provider: IdentityProvider, subject: String): ExternalIdentity? {
+        return repository.findByProviderAndSubject(provider, subject)
+    }
 }
