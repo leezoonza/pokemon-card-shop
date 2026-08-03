@@ -20,6 +20,7 @@ class ExternalIdentity private constructor(
     val id: Long = 0L,
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     val provider: IdentityProvider,
 
     @Column(nullable = false)
