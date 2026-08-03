@@ -10,6 +10,9 @@ class Member private constructor(
     val id: Long = 0L,
 
     @Embedded
+    @AttributeOverride(
+        name = "value",
+        column = Column(name = "nickname", unique = true, nullable = false))
     var nickname: Nickname,
 
     @Column(nullable = false)
