@@ -4,6 +4,7 @@ import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.AuthTokenRe
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.SignupRequest
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
 import com.zoonza.pokemoncardshop.common.response.ApiResponse
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.*
 class AuthController(
     private val signupUseCase: SignupUseCase,
     private val loginUseCase: LoginUseCase,
+    private val logoutUseCase: LogoutUseCase,
     private val reissueAuthTokensUseCase: ReissueAuthTokensUseCase,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
     private val identityTicketCookieManager: IdentityTicketCookieManager
@@ -68,5 +70,20 @@ class AuthController(
         return ApiResponse.success(
             AuthTokenResponse(authTokens.accessToken.value),
         )
+    }
+
+    @PostMapping("/logout")
+    fun logout(
+        @CookieValue(
+            name = RefreshTokenCookieManager.COOKIE_NAME,
+            required = false
+        ) refreshToken: String?,
+        response: HttpServletResponse,
+    ): ApiResponse<Unit> {
+        logoutUseCase.logout(refreshToken)
+
+        refreshTokenCookieManager.clear(response)
+
+        return ApiResponse.success()
     }
 }

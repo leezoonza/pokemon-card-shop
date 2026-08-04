@@ -309,6 +309,29 @@ class AuthServiceTests {
         }
     }
 
+    @Test
+    fun `리프레시 토큰을 삭제하고 로그아웃한다`() {
+        every { refreshTokenStore.delete("refresh-token") } just Runs
+
+        service.logout("refresh-token")
+
+        verify(exactly = 1) { refreshTokenStore.delete("refresh-token") }
+    }
+
+    @Test
+    fun `리프레시 토큰이 없어도 로그아웃한다`() {
+        service.logout(null)
+
+        verify(exactly = 0) { refreshTokenStore.delete(any()) }
+    }
+
+    @Test
+    fun `빈 리프레시 토큰이어도 로그아웃한다`() {
+        service.logout(" ")
+
+        verify(exactly = 0) { refreshTokenStore.delete(any()) }
+    }
+
     companion object {
         private val CREATED_AT: Instant = Instant.parse("2026-08-02T03:00:00Z")
     }

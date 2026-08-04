@@ -5,6 +5,7 @@ import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAccessToke
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
@@ -25,6 +26,7 @@ class AuthControllerTests {
 
     private val signupUseCase = mockk<SignupUseCase>()
     private val loginUseCase = mockk<LoginUseCase>()
+    private val logoutUseCase = mockk<LogoutUseCase>()
     private val reissueAuthTokensUseCase = mockk<ReissueAuthTokensUseCase>()
     private val refreshTokenCookieManager = mockk<RefreshTokenCookieManager>()
     private val identityTicketCookieManager = mockk<IdentityTicketCookieManager>()
@@ -33,6 +35,7 @@ class AuthControllerTests {
             AuthController(
                 signupUseCase,
                 loginUseCase,
+                logoutUseCase,
                 reissueAuthTokensUseCase,
                 refreshTokenCookieManager,
                 identityTicketCookieManager,
@@ -151,5 +154,36 @@ class AuthControllerTests {
 
         verify(exactly = 1) { reissueAuthTokensUseCase.reissue(null) }
         verify(exactly = 0) { refreshTokenCookieManager.write(any(), any()) }
+    }
+
+    @Test
+    fun `리프레시 토큰을 폐기하고 쿠키를 만료시킨다`() {
+        every { logoutUseCase.logout("refresh-token") } just Runs
+        every { refreshTokenCookieManager.clear(any()) } just Runs
+
+        mockMvc.perform(
+            post("/api/auth/logout")
+                .cookie(MockCookie(RefreshTokenCookieManager.COOKIE_NAME, "refresh-token")),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data").doesNotExist())
+
+        verify(exactly = 1) { logoutUseCase.logout("refresh-token") }
+        verify(exactly = 1) { refreshTokenCookieManager.clear(any()) }
+    }
+
+    @Test
+    fun `리프레시 토큰 쿠키가 없어도 로그아웃한다`() {
+        every { logoutUseCase.logout(null) } just Runs
+        every { refreshTokenCookieManager.clear(any()) } just Runs
+
+        mockMvc.perform(post("/api/auth/logout"))
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data").doesNotExist())
+
+        verify(exactly = 1) { logoutUseCase.logout(null) }
+        verify(exactly = 1) { refreshTokenCookieManager.clear(any()) }
     }
 }

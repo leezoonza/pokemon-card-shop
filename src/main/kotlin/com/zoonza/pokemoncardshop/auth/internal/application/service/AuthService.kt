@@ -3,6 +3,7 @@ package com.zoonza.pokemoncardshop.auth.internal.application.service
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthTokens
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
@@ -30,6 +31,7 @@ class AuthService(
     private val externalIdentityRepository: ExternalIdentityRepository
 ) : SignupUseCase,
     LoginUseCase,
+    LogoutUseCase,
     ReissueAuthTokensUseCase {
 
     @Transactional
@@ -111,5 +113,11 @@ class AuthService(
         )
 
         return authTokens
+    }
+
+    override fun logout(refreshToken: String?) {
+        if (refreshToken.isNullOrBlank()) return
+
+        refreshTokenStore.delete(refreshToken)
     }
 }
