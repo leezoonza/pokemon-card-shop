@@ -12,7 +12,8 @@ class MemberService(
     private val memberRepository: MemberRepository
 ) : CheckNicknameAvailabilityUseCase,
     MemberRegistrationApi,
-    MemberLoginApi {
+    MemberLoginApi,
+    MemberRoleQueryApi {
 
     override fun check(nickname: Nickname): Boolean {
         return !memberRepository.existsByNickname(nickname)
@@ -25,28 +26,29 @@ class MemberService(
         validateUniqueNickname(nickname)
 
         val member = Member.register(
-            nickname,
-            MemberRole.MEMBER,
-            command.createdAt,
+            nickname = nickname,
+            role = MemberRole.MEMBER,
+            createdAt = command.createdAt,
         )
 
         val saved = memberRepository.save(member)
 
-        return MemberRegisterResult(
-            saved.id,
-            saved.role.value
-        )
+        return MemberRegisterResult(saved.id, saved.role.value)
     }
 
     @Transactional
-    override fun recordLogin(command: MemberLoginCommand): MemberLoginResult {
-        val member = memberRepository
-            .findById(command.memberId)
-            ?: throw DomainException(MemberErrorCode.MEMBER_NOT_FOUND)
+    override fun recordLogin(command: MemberLoginCommand): MemberLoginResult? {
+        val member = memberRepository.findById(command.memberId)
+            ?: return null
 
         member.recordLogin(command.loggedInAt)
 
         return MemberLoginResult(member.role.value)
+    }
+
+    override fun findByMemberId(memberId: Long): MemberRoleResult? {
+        return memberRepository.findById(memberId)
+            ?.let { MemberRoleResult(it.role.value) }
     }
 
     private fun validateUniqueNickname(nickname: Nickname) {

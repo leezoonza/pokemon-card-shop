@@ -22,7 +22,7 @@ class RedisIdentityTicketStoreAdapterTests {
     private val store = RedisIdentityTicketStoreAdapter(objectMapper, redisTemplate)
 
     @Test
-    fun `외부 신원을 일회용 티켓으로 저장한다`() {
+    fun `연동 계정을 일회용 티켓으로 저장한다`() {
         val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
         val ttl = Duration.ofMinutes(10)
         val key = slot<String>()

@@ -12,7 +12,8 @@ class Member private constructor(
     @Embedded
     @AttributeOverride(
         name = "value",
-        column = Column(name = "nickname", unique = true, nullable = false))
+        column = Column(name = "nickname", unique = true, nullable = false)
+    )
     var nickname: Nickname,
 
     @Column(nullable = false)

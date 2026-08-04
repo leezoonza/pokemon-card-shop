@@ -32,7 +32,7 @@ class OidcAuthenticationFailureHandlerTests {
         )
 
         response.redirectedUrl shouldBe
-            "http://localhost:3000/login/error?error=invalid_id_token"
+                "http://localhost:3000/login/error?error=invalid_id_token"
     }
 
     @Test
@@ -46,6 +46,6 @@ class OidcAuthenticationFailureHandlerTests {
         )
 
         response.redirectedUrl shouldBe
-            "http://localhost:3000/login/error?error=oidc_authentication_failed"
+                "http://localhost:3000/login/error?error=oidc_authentication_failed"
     }
 }

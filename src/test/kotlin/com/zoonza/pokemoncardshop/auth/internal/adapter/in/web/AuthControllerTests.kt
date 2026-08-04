@@ -5,7 +5,10 @@ import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAccessToke
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
+import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
+import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.global.exception.GlobalExceptionHandler
 import io.mockk.*
 import org.junit.jupiter.api.Test
@@ -22,6 +25,7 @@ class AuthControllerTests {
 
     private val signupUseCase = mockk<SignupUseCase>()
     private val loginUseCase = mockk<LoginUseCase>()
+    private val reissueAuthTokensUseCase = mockk<ReissueAuthTokensUseCase>()
     private val refreshTokenCookieManager = mockk<RefreshTokenCookieManager>()
     private val identityTicketCookieManager = mockk<IdentityTicketCookieManager>()
     private val mockMvc: MockMvc = MockMvcBuilders
@@ -29,6 +33,7 @@ class AuthControllerTests {
             AuthController(
                 signupUseCase,
                 loginUseCase,
+                reissueAuthTokensUseCase,
                 refreshTokenCookieManager,
                 identityTicketCookieManager,
             ),
@@ -109,5 +114,42 @@ class AuthControllerTests {
         verify(exactly = 1) {
             refreshTokenCookieManager.write(any(), tokens.refreshToken)
         }
+    }
+
+    @Test
+    fun `리프레시 토큰을 회전하고 새 액세스 토큰을 응답한다`() {
+        val tokens = AuthTokens(
+            accessToken = IssuedAccessToken("new-access-token"),
+            refreshToken = IssuedRefreshToken("new-refresh-token", Duration.ofDays(14)),
+        )
+        every { reissueAuthTokensUseCase.reissue("refresh-token") } returns tokens
+        every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
+
+        mockMvc.perform(
+            post("/api/auth/refresh")
+                .cookie(MockCookie(RefreshTokenCookieManager.COOKIE_NAME, "refresh-token")),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.success").value(true))
+            .andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+
+        verify(exactly = 1) { reissueAuthTokensUseCase.reissue("refresh-token") }
+        verify(exactly = 1) {
+            refreshTokenCookieManager.write(any(), tokens.refreshToken)
+        }
+    }
+
+    @Test
+    fun `리프레시 토큰 쿠키가 없으면 인증 토큰 재발급을 거절한다`() {
+        every { reissueAuthTokensUseCase.reissue(null) } throws
+                DomainException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+
+        mockMvc.perform(post("/api/auth/refresh"))
+            .andExpect(status().isUnauthorized)
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.data.code").value("AUTH-003"))
+
+        verify(exactly = 1) { reissueAuthTokensUseCase.reissue(null) }
+        verify(exactly = 0) { refreshTokenCookieManager.write(any(), any()) }
     }
 }

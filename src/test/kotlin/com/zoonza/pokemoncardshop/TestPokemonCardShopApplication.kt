@@ -5,5 +5,5 @@ import org.springframework.boot.with
 
 
 fun main(args: Array<String>) {
-	fromApplication<PokemonCardShopApplication>().with(TestcontainersConfiguration::class).run(*args)
+    fromApplication<PokemonCardShopApplication>().with(TestcontainersConfiguration::class).run(*args)
 }

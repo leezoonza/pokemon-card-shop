@@ -24,7 +24,7 @@ class OidcAuthenticationSuccessHandler(
         response: HttpServletResponse,
         authentication: Authentication
     ) {
-        val oidcUser =  requireOidcUser(authentication.principal)
+        val oidcUser = requireOidcUser(authentication.principal)
 
         val identity = VerifiedExternalIdentity(oidcUser.provider, oidcUser.subject)
 

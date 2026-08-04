@@ -4,16 +4,18 @@ import jakarta.persistence.*
 import java.time.Instant
 
 @Entity
-@Table(uniqueConstraints = [
-    UniqueConstraint(
-        name = "uk_external_identity_provider_subject",
-        columnNames = ["provider", "subject"]
-    ),
-    UniqueConstraint(
-        name = "uk_external_identity_provider_member_id",
-        columnNames = ["provider", "member_id"]
-    )
-])
+@Table(
+    uniqueConstraints = [
+        UniqueConstraint(
+            name = "uk_external_identity_provider_subject",
+            columnNames = ["provider", "subject"]
+        ),
+        UniqueConstraint(
+            name = "uk_external_identity_provider_member_id",
+            columnNames = ["provider", "member_id"]
+        )
+    ]
+)
 class ExternalIdentity private constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

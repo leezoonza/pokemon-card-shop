@@ -58,7 +58,7 @@ class GlobalExceptionHandler {
     fun handleUnexpectedException(
         exception: Exception,
     ): ResponseEntity<ApiResponse<ErrorResponse>> {
-        logger.error(exception) { "처리되지 않은 예외가 발생했습니다." }
+        logger.error(exception) { "예상하지 못한 예외가 발생했습니다." }
 
         val error = ErrorResponse.of(CommonErrorCode.INTERNAL_SERVER_ERROR)
 

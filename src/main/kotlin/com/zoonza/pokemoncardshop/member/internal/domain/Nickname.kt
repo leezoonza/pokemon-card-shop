@@ -13,7 +13,7 @@ data class Nickname(val value: String) {
 
         if (value.length !in MIN_LENGTH..MAX_LENGTH ||
             !ALLOWED_CHARACTERS.matcher(value).matches()
-            ) {
+        ) {
             throw DomainException(MemberErrorCode.INVALID_NICKNAME)
         }
     }

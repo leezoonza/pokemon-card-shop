@@ -133,7 +133,7 @@ class MemberServiceTests {
             ),
         )
 
-        result.role shouldBe MemberRole.MEMBER.value
+        result?.role shouldBe MemberRole.MEMBER.value
         member.lastLoginAt shouldBe loggedInAt
         verify(exactly = 1) { memberRepository.findById(42L) }
     }
@@ -142,16 +142,40 @@ class MemberServiceTests {
     fun `존재하지 않는 회원의 로그인을 기록할 수 없다`() {
         every { memberRepository.findById(42L) } returns null
 
-        val exception = shouldThrow<DomainException> {
-            memberService.recordLogin(
-                MemberLoginCommand(
-                    memberId = 42L,
-                    loggedInAt = Instant.parse("2026-08-04T04:00:00Z"),
-                ),
-            )
-        }
+        val result = memberService.recordLogin(
+            MemberLoginCommand(
+                memberId = 42L,
+                loggedInAt = Instant.parse("2026-08-04T04:00:00Z"),
+            ),
+        )
 
-        exception.errorCode shouldBe MemberErrorCode.MEMBER_NOT_FOUND
+        result shouldBe null
+        verify(exactly = 1) { memberRepository.findById(42L) }
+    }
+
+    @Test
+    fun `회원의 인증 정보를 조회한다`() {
+        val createdAt = Instant.parse("2026-07-31T03:30:00Z")
+        val member = persistedMember(
+            id = 42L,
+            nickname = Nickname("피카츄"),
+            createdAt = createdAt,
+        )
+        every { memberRepository.findById(42L) } returns member
+
+        val result = memberService.findByMemberId(42L)
+
+        result?.role shouldBe MemberRole.MEMBER.value
+        verify(exactly = 1) { memberRepository.findById(42L) }
+    }
+
+    @Test
+    fun `존재하지 않는 회원의 인증 정보는 조회되지 않는다`() {
+        every { memberRepository.findById(42L) } returns null
+
+        val result = memberService.findByMemberId(42L)
+
+        result shouldBe null
         verify(exactly = 1) { memberRepository.findById(42L) }
     }
 

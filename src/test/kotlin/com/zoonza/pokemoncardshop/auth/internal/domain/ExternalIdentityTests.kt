@@ -9,7 +9,7 @@ class ExternalIdentityTests {
 
     @ParameterizedTest
     @EnumSource(IdentityProvider::class)
-    fun `외부 신원을 가입 상태로 생성한다`(provider: IdentityProvider) {
+    fun `연동 계정을 가입 상태로 생성한다`(provider: IdentityProvider) {
         val createdAt = Instant.parse("2026-08-02T03:00:00Z")
 
         val identity = ExternalIdentity.register(

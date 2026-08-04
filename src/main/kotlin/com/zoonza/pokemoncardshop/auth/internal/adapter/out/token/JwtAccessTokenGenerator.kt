@@ -20,7 +20,7 @@ class JwtAccessTokenGenerator(
         memberId: Long,
         role: String,
         issuedAt: Instant,
-        ): IssuedAccessToken {
+    ): IssuedAccessToken {
 
         val claims = JwtClaimsSet.builder()
             .subject(memberId.toString())

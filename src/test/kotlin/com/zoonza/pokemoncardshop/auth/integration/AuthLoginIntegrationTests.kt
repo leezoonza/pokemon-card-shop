@@ -58,7 +58,7 @@ class AuthLoginIntegrationTests @Autowired constructor(
     }
 
     @Test
-    fun `가입한 외부 신원으로 로그인하고 인증 상태를 갱신한다`() {
+    fun `가입한 연동 계정으로 로그인하고 인증 상태를 갱신한다`() {
         val registeredAt = Instant.parse("2026-08-01T03:00:00Z")
         val member = memberRepository.saveAndFlush(
             Member.register(
@@ -133,5 +133,41 @@ class AuthLoginIntegrationTests @Autowired constructor(
         }
 
         exception.errorCode shouldBe AuthErrorCode.INVALID_IDENTITY_TICKET
+    }
+
+    @Test
+    fun `연동 계정에 연결된 회원이 없으면 회원 오류를 노출하지 않는다`() {
+        val registeredAt = Instant.parse("2026-08-01T03:00:00Z")
+        val verifiedIdentity = VerifiedExternalIdentity(
+            provider = IdentityProvider.GOOGLE,
+            identifier = "orphan-google-subject",
+        )
+        externalIdentityRepository.saveAndFlush(
+            ExternalIdentity.register(
+                provider = verifiedIdentity.provider,
+                subject = verifiedIdentity.identifier,
+                memberId = 999L,
+                createdAt = registeredAt,
+            ),
+        )
+        val identityTicket = identityTicketStore.issue(
+            verifiedIdentity,
+            Duration.ofMinutes(10),
+        )
+
+        mockMvc.perform(
+            post("/api/auth/login")
+                .with(csrf())
+                .cookie(
+                    MockCookie(
+                        IdentityTicketCookieManager.COOKIE_NAME,
+                        identityTicket,
+                    ),
+                ),
+        )
+            .andExpect(status().isInternalServerError)
+            .andExpect(jsonPath("$.success").value(false))
+            .andExpect(jsonPath("$.data.code").value("COMMON-001"))
+            .andExpect(jsonPath("$.data.message").value("서버 내부 오류가 발생했습니다."))
     }
 }

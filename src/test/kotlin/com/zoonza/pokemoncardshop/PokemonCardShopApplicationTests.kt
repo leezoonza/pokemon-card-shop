@@ -10,8 +10,8 @@ import org.springframework.test.context.ActiveProfiles
 @SpringBootTest
 class PokemonCardShopApplicationTests {
 
-	@Test
-	fun contextLoads() {
-	}
+    @Test
+    fun contextLoads() {
+    }
 
 }

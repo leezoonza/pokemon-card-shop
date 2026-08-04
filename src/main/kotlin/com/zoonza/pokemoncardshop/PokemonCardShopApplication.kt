@@ -7,5 +7,5 @@ import org.springframework.boot.runApplication
 class PokemonCardShopApplication
 
 fun main(args: Array<String>) {
-	runApplication<PokemonCardShopApplication>(*args)
+    runApplication<PokemonCardShopApplication>(*args)
 }

@@ -22,7 +22,7 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
 ) {
 
     @Test
-    fun `외부 신원을 저장하고 모든 속성을 조회한다`() {
+    fun `연동 계정을 저장하고 모든 속성을 조회한다`() {
         val createdAt = Instant.parse("2026-08-02T03:00:00Z")
         val saved = repository.saveAndFlush(
             ExternalIdentity.register(
@@ -46,7 +46,7 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
     }
 
     @Test
-    fun `같은 제공자와 식별자의 외부 신원이 있을 때만 존재한다고 응답한다`() {
+    fun `같은 제공자와 식별자의 연동 계정이 있을 때만 존재한다고 응답한다`() {
         repository.saveAndFlush(
             ExternalIdentity.register(
                 provider = IdentityProvider.GOOGLE,
@@ -67,7 +67,7 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
     }
 
     @Test
-    fun `제공자와 식별자로 외부 신원을 조회한다`() {
+    fun `제공자와 식별자로 연동 계정을 조회한다`() {
         val saved = repository.saveAndFlush(
             ExternalIdentity.register(
                 provider = IdentityProvider.GOOGLE,

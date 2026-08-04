@@ -18,7 +18,7 @@ class IdentityTicketServiceTests {
     private val service = IdentityTicketService(identityTicketStore, externalIdentityRepository)
 
     @Test
-    fun `가입하지 않은 외부 신원에는 회원가입 티켓을 발급한다`() {
+    fun `가입하지 않은 연동 계정에는 회원가입 티켓을 발급한다`() {
         val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "new-subject")
 
         every {
@@ -39,7 +39,7 @@ class IdentityTicketServiceTests {
     }
 
     @Test
-    fun `가입한 외부 신원에는 로그인 티켓을 발급한다`() {
+    fun `가입한 연동 계정에는 로그인 티켓을 발급한다`() {
         val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "registered-subject")
 
         every {
