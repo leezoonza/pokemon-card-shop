@@ -37,4 +37,18 @@ class MemberTests {
 
         member.lastLoginAt shouldBe loggedInAt
     }
+
+    @Test
+    fun `닉네임을 변경한다`() {
+        val member = Member.register(
+            nickname = Nickname("피카츄"),
+            role = MemberRole.MEMBER,
+            createdAt = Instant.parse("2026-07-31T03:30:00Z"),
+        )
+        val newNickname = Nickname("라이츄")
+
+        member.changeNickname(newNickname)
+
+        member.nickname shouldBe newNickname
+    }
 }

@@ -2,6 +2,8 @@ package com.zoonza.pokemoncardshop.member.internal.application.service
 
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.api.*
+import com.zoonza.pokemoncardshop.member.internal.application.dto.ChangeNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.ChangeNicknameUseCase
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.CheckNicknameAvailabilityUseCase
 import com.zoonza.pokemoncardshop.member.internal.domain.*
 import org.springframework.stereotype.Service
@@ -13,7 +15,8 @@ class MemberService(
 ) : CheckNicknameAvailabilityUseCase,
     MemberRegistrationApi,
     MemberLoginApi,
-    MemberRoleQueryApi {
+    MemberRoleQueryApi,
+    ChangeNicknameUseCase {
 
     override fun isAvailable(nickname: Nickname): Boolean {
         return !memberRepository.existsByNickname(nickname)
@@ -49,6 +52,18 @@ class MemberService(
     override fun findByMemberId(memberId: Long): MemberRoleResult? {
         return memberRepository.findById(memberId)
             ?.let { MemberRoleResult(it.role.value) }
+    }
+
+    @Transactional
+    override fun change(command: ChangeNicknameCommand) {
+        val member = memberRepository.findById(command.memberId)
+            ?: throw DomainException(MemberErrorCode.MEMBER_NOT_FOUND)
+
+        if (member.nickname == command.nickname) return
+
+        validateUniqueNickname(command.nickname)
+
+        member.changeNickname(command.nickname)
     }
 
     private fun validateUniqueNickname(nickname: Nickname) {

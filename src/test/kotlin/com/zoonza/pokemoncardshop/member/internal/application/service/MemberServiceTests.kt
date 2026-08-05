@@ -3,6 +3,7 @@ package com.zoonza.pokemoncardshop.member.internal.application.service
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.api.MemberLoginCommand
 import com.zoonza.pokemoncardshop.member.api.RegisterMemberCommand
+import com.zoonza.pokemoncardshop.member.internal.application.dto.ChangeNicknameCommand
 import com.zoonza.pokemoncardshop.member.internal.domain.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -177,6 +178,78 @@ class MemberServiceTests {
 
         result shouldBe null
         verify(exactly = 1) { memberRepository.findById(42L) }
+    }
+
+    @Test
+    fun `사용 가능한 닉네임으로 변경한다`() {
+        val member = persistedMember(
+            id = 42L,
+            nickname = Nickname("피카츄"),
+            createdAt = Instant.parse("2026-07-31T03:30:00Z"),
+        )
+        val command = ChangeNicknameCommand(memberId = 42L, nickname = "라이츄")
+        every { memberRepository.findById(command.memberId) } returns member
+        every { memberRepository.existsByNickname(command.nickname) } returns false
+
+        memberService.change(command)
+
+        member.nickname shouldBe command.nickname
+        verify(exactly = 1) { memberRepository.findById(command.memberId) }
+        verify(exactly = 1) { memberRepository.existsByNickname(command.nickname) }
+    }
+
+    @Test
+    fun `현재 닉네임으로 변경하면 그대로 유지한다`() {
+        val nickname = Nickname("피카츄")
+        val member = persistedMember(
+            id = 42L,
+            nickname = nickname,
+            createdAt = Instant.parse("2026-07-31T03:30:00Z"),
+        )
+        val command = ChangeNicknameCommand(memberId = 42L, nickname = nickname.value)
+        every { memberRepository.findById(command.memberId) } returns member
+
+        memberService.change(command)
+
+        member.nickname shouldBe nickname
+        verify(exactly = 1) { memberRepository.findById(command.memberId) }
+        verify(exactly = 0) { memberRepository.existsByNickname(any()) }
+    }
+
+    @Test
+    fun `이미 사용 중인 닉네임으로 변경할 수 없다`() {
+        val originalNickname = Nickname("피카츄")
+        val member = persistedMember(
+            id = 42L,
+            nickname = originalNickname,
+            createdAt = Instant.parse("2026-07-31T03:30:00Z"),
+        )
+        val command = ChangeNicknameCommand(memberId = 42L, nickname = "라이츄")
+        every { memberRepository.findById(command.memberId) } returns member
+        every { memberRepository.existsByNickname(command.nickname) } returns true
+
+        val exception = shouldThrow<DomainException> {
+            memberService.change(command)
+        }
+
+        exception.errorCode shouldBe MemberErrorCode.DUPLICATE_NICKNAME
+        member.nickname shouldBe originalNickname
+        verify(exactly = 1) { memberRepository.findById(command.memberId) }
+        verify(exactly = 1) { memberRepository.existsByNickname(command.nickname) }
+    }
+
+    @Test
+    fun `존재하지 않는 회원의 닉네임을 변경할 수 없다`() {
+        val command = ChangeNicknameCommand(memberId = 42L, nickname = "라이츄")
+        every { memberRepository.findById(command.memberId) } returns null
+
+        val exception = shouldThrow<DomainException> {
+            memberService.change(command)
+        }
+
+        exception.errorCode shouldBe MemberErrorCode.MEMBER_NOT_FOUND
+        verify(exactly = 1) { memberRepository.findById(command.memberId) }
+        verify(exactly = 0) { memberRepository.existsByNickname(any()) }
     }
 
     private fun persistedMember(

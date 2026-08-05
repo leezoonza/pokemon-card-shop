@@ -27,7 +27,11 @@ class Member private constructor(
     var lastLoginAt: Instant,
 ) {
     fun recordLogin(loggedInAt: Instant) {
-        lastLoginAt = loggedInAt
+        this.lastLoginAt = loggedInAt
+    }
+
+    fun changeNickname(nickname: Nickname) {
+        this.nickname = nickname
     }
 
     companion object {
