@@ -1,14 +1,13 @@
-package com.zoonza.pokemoncardshop.global.config
+package com.zoonza.pokemoncardshop.global.security
 
-import org.springframework.beans.factory.annotation.Value
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
-import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter
-import org.springframework.security.oauth2.server.resource.authentication.JwtGrantedAuthoritiesConverter
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.AuthenticationFailureHandler
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler
@@ -18,56 +17,63 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 
 @Configuration
 @EnableWebSecurity
+@EnableConfigurationProperties(CorsProperties::class)
 class SecurityConfig(
-    @Value("\${app.cors.allowed-origin}")
-    private val allowedOrigin: String,
+    private val corsProperties: CorsProperties,
+    @Qualifier("customOidcUserService")
     private val oidcUserService: OidcUserService,
-    private val authenticationSuccessHandler: AuthenticationSuccessHandler,
-    private val authenticationFailureHandler: AuthenticationFailureHandler
+    @Qualifier("oidcAuthenticationSuccessHandler")
+    private val oidcAuthenticationSuccessHandler: AuthenticationSuccessHandler,
+    @Qualifier("oidcAuthenticationFailureHandler")
+    private val oidcAuthenticationFailureHandler: AuthenticationFailureHandler,
+    private val jwtAuthenticationConverter: JwtAuthenticationConverter,
+    private val apiAuthenticationEntryPoint: ApiAuthenticationEntryPoint,
+    private val apiAccessDeniedHandler: ApiAccessDeniedHandler,
 ) {
     @Bean
-    fun securityFilterChain(
-        http: HttpSecurity,
-        jwtAuthenticationConverter: JwtAuthenticationConverter,
-    ): SecurityFilterChain {
-        return http
+    fun securityFilterChain(http: HttpSecurity): SecurityFilterChain =
+        http
             .cors { }
             .csrf { it.spa() }
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
-            .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            .sessionManagement {
+                it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
             .authorizeHttpRequests { auth ->
-                auth.anyRequest().permitAll()
+                auth.requestMatchers(
+                    "/oauth2/authorization/**",
+                    "/login/oauth2/code/**",
+                    "/api/auth/**",
+                    "/api/members/nickname",
+                    "/error",
+                ).permitAll()
+                auth.anyRequest().authenticated()
+            }
+            .exceptionHandling { exceptions ->
+                exceptions.authenticationEntryPoint(apiAuthenticationEntryPoint)
+                exceptions.accessDeniedHandler(apiAccessDeniedHandler)
             }
             .oauth2Login { oauth2 ->
-                oauth2.userInfoEndpoint { userInfo -> userInfo.oidcUserService(oidcUserService) }
-                    .successHandler(authenticationSuccessHandler)
-                    .failureHandler(authenticationFailureHandler)
+                oauth2.userInfoEndpoint { userInfo ->
+                    userInfo.oidcUserService(oidcUserService)
+                }
+                oauth2.successHandler(oidcAuthenticationSuccessHandler)
+                oauth2.failureHandler(oidcAuthenticationFailureHandler)
             }
             .oauth2ResourceServer { resourceServer ->
+                resourceServer.authenticationEntryPoint(apiAuthenticationEntryPoint)
+                resourceServer.accessDeniedHandler(apiAccessDeniedHandler)
                 resourceServer.jwt { jwt ->
                     jwt.jwtAuthenticationConverter(jwtAuthenticationConverter)
                 }
             }
             .build()
-    }
-
-    @Bean
-    fun jwtAuthenticationConverter(): JwtAuthenticationConverter {
-        val authoritiesConverter = JwtGrantedAuthoritiesConverter().apply {
-            setAuthoritiesClaimName(ROLE_CLAIM)
-            setAuthorityPrefix(ROLE_PREFIX)
-        }
-
-        return JwtAuthenticationConverter().apply {
-            setJwtGrantedAuthoritiesConverter(authoritiesConverter)
-        }
-    }
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val configuration = CorsConfiguration().apply {
-            allowedOrigins = listOf(allowedOrigin)
+            allowedOrigins = listOf(corsProperties.allowedOrigin)
             allowedMethods = listOf(
                 "GET",
                 "POST",
@@ -79,7 +85,7 @@ class SecurityConfig(
             allowedHeaders = listOf(
                 "Authorization",
                 "Content-Type",
-                "X-XSRF-TOKEN"
+                "X-XSRF-TOKEN",
             )
             allowCredentials = true
             maxAge = 3600
@@ -88,10 +94,5 @@ class SecurityConfig(
         return UrlBasedCorsConfigurationSource().apply {
             registerCorsConfiguration("/**", configuration)
         }
-    }
-
-    companion object {
-        private const val ROLE_CLAIM = "role"
-        private const val ROLE_PREFIX = "ROLE_"
     }
 }
