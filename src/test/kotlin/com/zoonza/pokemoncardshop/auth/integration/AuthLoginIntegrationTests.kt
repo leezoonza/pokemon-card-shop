@@ -32,9 +32,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.post
 import java.time.Duration
 import java.time.Instant
 
@@ -84,19 +82,20 @@ class AuthLoginIntegrationTests @Autowired constructor(
             Duration.ofMinutes(10),
         )
 
-        val result = mockMvc.perform(
-            post("/api/auth/login")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        IdentityTicketCookieManager.COOKIE_NAME,
-                        identityTicket,
-                    ),
+        val result = mockMvc.post("/api/auth/login") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    IdentityTicketCookieManager.COOKIE_NAME,
+                    identityTicket,
                 ),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.accessToken").isNotEmpty)
+            )
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.accessToken") { isNotEmpty() }
+            }
             .andReturn()
 
         val accessToken = JsonPath.read<String>(
@@ -155,19 +154,20 @@ class AuthLoginIntegrationTests @Autowired constructor(
             Duration.ofMinutes(10),
         )
 
-        mockMvc.perform(
-            post("/api/auth/login")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        IdentityTicketCookieManager.COOKIE_NAME,
-                        identityTicket,
-                    ),
+        mockMvc.post("/api/auth/login") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    IdentityTicketCookieManager.COOKIE_NAME,
+                    identityTicket,
                 ),
-        )
-            .andExpect(status().isInternalServerError)
-            .andExpect(jsonPath("$.success").value(false))
-            .andExpect(jsonPath("$.data.code").value("COMMON-001"))
-            .andExpect(jsonPath("$.data.message").value("서버 내부 오류가 발생했습니다."))
+            )
+        }
+            .andExpect {
+                status { isInternalServerError() }
+                jsonPath("$.success") { value(false) }
+                jsonPath("$.data.code") { value("COMMON-001") }
+                jsonPath("$.data.message") { value("서버 내부 오류가 발생했습니다.") }
+            }
     }
 }

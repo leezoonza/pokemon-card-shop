@@ -18,9 +18,7 @@ import org.springframework.mock.web.MockCookie
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.post
 import java.time.Duration
 
 @Import(TestcontainersConfiguration::class)
@@ -36,19 +34,20 @@ class AuthLogoutIntegrationTests @Autowired constructor(
     fun `리프레시 토큰을 폐기하고 로그아웃한다`() {
         refreshTokenStore.save(42L, "logout-refresh-token", Duration.ofDays(14))
 
-        val result = mockMvc.perform(
-            post("/api/auth/logout")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        RefreshTokenCookieManager.COOKIE_NAME,
-                        "logout-refresh-token",
-                    ),
+        val result = mockMvc.post("/api/auth/logout") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    RefreshTokenCookieManager.COOKIE_NAME,
+                    "logout-refresh-token",
                 ),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data").doesNotExist())
+            )
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data") { doesNotExist() }
+            }
             .andReturn()
 
         result.response.getHeaders(HttpHeaders.SET_COOKIE)
@@ -63,13 +62,14 @@ class AuthLogoutIntegrationTests @Autowired constructor(
 
     @Test
     fun `리프레시 토큰이 없어도 로그아웃한다`() {
-        val result = mockMvc.perform(
-            post("/api/auth/logout")
-                .with(csrf()),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data").doesNotExist())
+        val result = mockMvc.post("/api/auth/logout") {
+            with(csrf())
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data") { doesNotExist() }
+            }
             .andReturn()
 
         result.response.getHeaders(HttpHeaders.SET_COOKIE)

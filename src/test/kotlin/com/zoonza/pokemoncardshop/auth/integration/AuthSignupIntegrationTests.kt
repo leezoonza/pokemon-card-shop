@@ -31,9 +31,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.post
 import java.time.Duration
 
 @Import(TestcontainersConfiguration::class)
@@ -66,21 +64,22 @@ class AuthSignupIntegrationTests @Autowired constructor(
             Duration.ofMinutes(10),
         )
 
-        val result = mockMvc.perform(
-            post("/api/auth/signup")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        IdentityTicketCookieManager.COOKIE_NAME,
-                        identityTicket,
-                    ),
-                )
-                .contentType(MediaType.APPLICATION_JSON)
-                .content("""{"nickname":"피카츄"}"""),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.accessToken").isNotEmpty)
+        val result = mockMvc.post("/api/auth/signup") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    IdentityTicketCookieManager.COOKIE_NAME,
+                    identityTicket,
+                ),
+            )
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"nickname":"피카츄"}"""
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.accessToken") { isNotEmpty() }
+            }
             .andReturn()
 
         val accessToken = JsonPath.read<String>(

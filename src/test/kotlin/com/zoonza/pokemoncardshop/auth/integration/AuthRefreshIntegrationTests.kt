@@ -25,9 +25,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
+import org.springframework.test.web.servlet.post
 import java.time.Instant
 
 @Import(TestcontainersConfiguration::class)
@@ -65,19 +63,20 @@ class AuthRefreshIntegrationTests @Autowired constructor(
             originalTokens.refreshToken.ttl,
         )
 
-        val result = mockMvc.perform(
-            post("/api/auth/refresh")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        RefreshTokenCookieManager.COOKIE_NAME,
-                        originalTokens.refreshToken.value,
-                    ),
+        val result = mockMvc.post("/api/auth/refresh") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    RefreshTokenCookieManager.COOKIE_NAME,
+                    originalTokens.refreshToken.value,
                 ),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
-            .andExpect(jsonPath("$.data.accessToken").isNotEmpty)
+            )
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.accessToken") { isNotEmpty() }
+            }
             .andReturn()
 
         val accessToken = JsonPath.read<String>(
@@ -101,18 +100,19 @@ class AuthRefreshIntegrationTests @Autowired constructor(
         jwt.getClaimAsString("role") shouldBe MemberRole.MEMBER.value
         refreshTokenStore.consume(rotatedRefreshToken) shouldBe member.id
 
-        mockMvc.perform(
-            post("/api/auth/refresh")
-                .with(csrf())
-                .cookie(
-                    MockCookie(
-                        RefreshTokenCookieManager.COOKIE_NAME,
-                        originalTokens.refreshToken.value,
-                    ),
+        mockMvc.post("/api/auth/refresh") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    RefreshTokenCookieManager.COOKIE_NAME,
+                    originalTokens.refreshToken.value,
                 ),
-        )
-            .andExpect(status().isUnauthorized)
-            .andExpect(jsonPath("$.success").value(false))
-            .andExpect(jsonPath("$.data.code").value("AUTH-003"))
+            )
+        }
+            .andExpect {
+                status { isUnauthorized() }
+                jsonPath("$.success") { value(false) }
+                jsonPath("$.data.code") { value("AUTH-003") }
+            }
     }
 }
