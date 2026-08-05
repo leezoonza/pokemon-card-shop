@@ -13,8 +13,7 @@ import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletRequest
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
-import org.springframework.test.web.servlet.result.MockMvcResultMatchers.*
+import org.springframework.test.web.servlet.get
 import org.springframework.web.cors.CorsConfigurationSource
 
 @Import(TestcontainersConfiguration::class)
@@ -28,23 +27,26 @@ class HttpSecurityIntegrationTests @Autowired constructor(
 
     @Test
     fun `인증되지 않은 보호 경로는 표준 인증 오류를 반환한다`() {
-        mockMvc.perform(get("/api/protected"))
-            .andExpect(status().isUnauthorized)
-            .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
-            .andExpect(jsonPath("$.success").value(false))
-            .andExpect(jsonPath("$.data.code").value("SECURITY-001"))
-            .andExpect(jsonPath("$.data.message").value("인증이 필요합니다."))
-            .andExpect(jsonPath("$.data.errors").isEmpty)
+        mockMvc.get("/api/protected")
+            .andExpect {
+                status { isUnauthorized() }
+                content { contentTypeCompatibleWith(MediaType.APPLICATION_JSON) }
+                jsonPath("$.success") { value(false) }
+                jsonPath("$.data.code") { value("SECURITY-001") }
+                jsonPath("$.data.message") { value("인증이 필요합니다.") }
+                jsonPath("$.data.errors") { isEmpty() }
+            }
     }
 
     @Test
     fun `닉네임 확인 경로는 인증 없이 접근한다`() {
-        mockMvc.perform(
-            get("/api/members/nickname")
-                .queryParam("nickname", "피카츄"),
-        )
-            .andExpect(status().isOk)
-            .andExpect(jsonPath("$.success").value(true))
+        mockMvc.get("/api/members/nickname") {
+            queryParam("nickname", "피카츄")
+        }
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+            }
     }
 
     @Test
