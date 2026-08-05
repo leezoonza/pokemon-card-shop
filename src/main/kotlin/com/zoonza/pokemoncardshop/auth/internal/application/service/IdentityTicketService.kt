@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.service
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketResult
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedIdentityTicket
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IssueIdentityTicketUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
@@ -14,12 +14,12 @@ class IdentityTicketService(
     private val externalIdentityRepository: ExternalIdentityRepository
 ) : IssueIdentityTicketUseCase {
 
-    override fun issue(identity: VerifiedExternalIdentity): IdentityTicketResult {
+    override fun issue(identity: VerifiedExternalIdentity): IssuedIdentityTicket {
         val purpose = determinePurpose(identity)
 
         val ticket = identityTicketStore.issue(identity, purpose.ttl)
 
-        return IdentityTicketResult(purpose, ticket)
+        return IssuedIdentityTicket(purpose, ticket)
     }
 
     private fun determinePurpose(
@@ -27,7 +27,7 @@ class IdentityTicketService(
     ): IdentityTicketPurpose {
         val isRegistered = externalIdentityRepository.existsByProviderAndSubject(
             identity.provider,
-            identity.identifier
+            identity.subject
         )
 
         return if (isRegistered) {

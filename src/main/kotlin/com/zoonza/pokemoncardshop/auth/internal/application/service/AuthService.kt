@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.service
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthTokens
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
@@ -35,18 +35,18 @@ class AuthService(
     ReissueAuthTokensUseCase {
 
     @Transactional
-    override fun signup(command: SignupCommand): AuthTokens {
+    override fun signup(command: SignupCommand): IssuedAuthTokens {
         val verifiedIdentity = identityTicketStore.consume(command.identityTicket)
 
         val createdAt = Instant.now(clock)
 
-        val memberRegisterCommand = MemberRegisterCommand(command.nickname, createdAt)
+        val registerMemberCommand = RegisterMemberCommand(command.nickname, createdAt)
 
-        val result = memberRegistrationApi.register(memberRegisterCommand)
+        val result = memberRegistrationApi.register(registerMemberCommand)
 
         val externalIdentity = ExternalIdentity.register(
             provider = verifiedIdentity.provider,
-            subject = verifiedIdentity.identifier,
+            subject = verifiedIdentity.subject,
             memberId = result.memberId,
             createdAt = createdAt
         )
@@ -65,13 +65,13 @@ class AuthService(
     }
 
     @Transactional
-    override fun login(identityTicket: String): AuthTokens {
+    override fun login(identityTicket: String): IssuedAuthTokens {
         val verifiedIdentity = identityTicketStore.consume(identityTicket)
 
         val loggedInAt = Instant.now(clock)
 
         val externalIdentity = externalIdentityRepository
-            .findByProviderAndSubject(verifiedIdentity.provider, verifiedIdentity.identifier)
+            .findByProviderAndSubject(verifiedIdentity.provider, verifiedIdentity.subject)
             ?: throw DomainException(AuthErrorCode.EXTERNAL_IDENTITY_NOT_FOUND)
 
         val command = MemberLoginCommand(externalIdentity.memberId, loggedInAt)
@@ -94,7 +94,7 @@ class AuthService(
         return authTokens
     }
 
-    override fun reissue(refreshToken: String?): AuthTokens {
+    override fun reissue(refreshToken: String?): IssuedAuthTokens {
         val token = refreshToken
             ?.takeIf { it.isNotBlank() }
             ?: throw DomainException(AuthErrorCode.INVALID_REFRESH_TOKEN)

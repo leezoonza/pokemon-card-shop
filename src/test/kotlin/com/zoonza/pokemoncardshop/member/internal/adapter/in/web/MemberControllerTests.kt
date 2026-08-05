@@ -28,7 +28,7 @@ class MemberControllerTests {
     fun `닉네임 사용 가능 여부를 응답한다`(available: Boolean) {
         val nickname = Nickname("피카츄")
 
-        every { checkNicknameAvailabilityUseCase.check(nickname) } returns available
+        every { checkNicknameAvailabilityUseCase.isAvailable(nickname) } returns available
 
         mockMvc.perform(
             get("/api/members/nickname")
@@ -38,7 +38,7 @@ class MemberControllerTests {
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.available").value(available))
 
-        verify(exactly = 1) { checkNicknameAvailabilityUseCase.check(nickname) }
+        verify(exactly = 1) { checkNicknameAvailabilityUseCase.isAvailable(nickname) }
     }
 
     @ParameterizedTest
@@ -54,6 +54,6 @@ class MemberControllerTests {
             .andExpect(jsonPath("$.data.message").value(MemberErrorCode.INVALID_NICKNAME.message))
             .andExpect(jsonPath("$.data.errors").isEmpty())
 
-        verify(exactly = 0) { checkNicknameAvailabilityUseCase.check(any()) }
+        verify(exactly = 0) { checkNicknameAvailabilityUseCase.isAvailable(any()) }
     }
 }

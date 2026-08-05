@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.member.internal.application.service
 
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.api.MemberLoginCommand
-import com.zoonza.pokemoncardshop.member.api.MemberRegisterCommand
+import com.zoonza.pokemoncardshop.member.api.RegisterMemberCommand
 import com.zoonza.pokemoncardshop.member.internal.domain.*
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -24,7 +24,7 @@ class MemberServiceTests {
 
         every { memberRepository.existsByNickname(nickname) } returns false
 
-        val available = memberService.check(nickname)
+        val available = memberService.isAvailable(nickname)
 
         available shouldBe true
 
@@ -37,7 +37,7 @@ class MemberServiceTests {
 
         every { memberRepository.existsByNickname(nickname) } returns true
 
-        val available = memberService.check(nickname)
+        val available = memberService.isAvailable(nickname)
 
         available shouldBe false
 
@@ -58,7 +58,7 @@ class MemberServiceTests {
         every { memberRepository.save(capture(memberSlot)) } returns savedMember
 
         val result = memberService.register(
-            MemberRegisterCommand(
+            RegisterMemberCommand(
                 nickname = nickname.value,
                 createdAt = createdAt,
             ),
@@ -80,7 +80,7 @@ class MemberServiceTests {
     fun `올바르지 않은 닉네임으로 가입할 수 없다`() {
         val exception = shouldThrow<DomainException> {
             memberService.register(
-                MemberRegisterCommand(
+                RegisterMemberCommand(
                     nickname = "피",
                     createdAt = Instant.parse("2026-07-31T03:30:00Z"),
                 ),
@@ -102,7 +102,7 @@ class MemberServiceTests {
 
         val exception = shouldThrow<DomainException> {
             memberService.register(
-                MemberRegisterCommand(
+                RegisterMemberCommand(
                     nickname = nickname.value,
                     createdAt = Instant.parse("2026-07-31T03:30:00Z"),
                 ),

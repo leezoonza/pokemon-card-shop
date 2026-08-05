@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketResult
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedIdentityTicket
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IssueIdentityTicketUseCase
 import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
@@ -45,11 +45,11 @@ class OidcAuthenticationSuccessHandlerTests {
         val oidcUser = CustomOidcUser(
             mockk<OidcUser>(),
             identity.provider,
-            identity.identifier,
+            identity.subject,
         )
         every { authentication.principal } returns oidcUser
         every { issueIdentityTicketUseCase.issue(identity) } returns
-                IdentityTicketResult(purpose, "identity-ticket")
+                IssuedIdentityTicket(purpose, "identity-ticket")
         every {
             cookieManager.write(any(), purpose, "identity-ticket")
         } just Runs

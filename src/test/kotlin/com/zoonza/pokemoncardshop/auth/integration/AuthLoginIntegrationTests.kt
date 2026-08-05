@@ -69,12 +69,12 @@ class AuthLoginIntegrationTests @Autowired constructor(
         )
         val verifiedIdentity = VerifiedExternalIdentity(
             provider = IdentityProvider.GOOGLE,
-            identifier = "google-subject",
+            subject = "google-subject",
         )
         externalIdentityRepository.saveAndFlush(
             ExternalIdentity.register(
                 provider = verifiedIdentity.provider,
-                subject = verifiedIdentity.identifier,
+                subject = verifiedIdentity.subject,
                 memberId = member.id,
                 createdAt = registeredAt,
             ),
@@ -140,12 +140,12 @@ class AuthLoginIntegrationTests @Autowired constructor(
         val registeredAt = Instant.parse("2026-08-01T03:00:00Z")
         val verifiedIdentity = VerifiedExternalIdentity(
             provider = IdentityProvider.GOOGLE,
-            identifier = "orphan-google-subject",
+            subject = "orphan-google-subject",
         )
         externalIdentityRepository.saveAndFlush(
             ExternalIdentity.register(
                 provider = verifiedIdentity.provider,
-                subject = verifiedIdentity.identifier,
+                subject = verifiedIdentity.subject,
                 memberId = 999L,
                 createdAt = registeredAt,
             ),

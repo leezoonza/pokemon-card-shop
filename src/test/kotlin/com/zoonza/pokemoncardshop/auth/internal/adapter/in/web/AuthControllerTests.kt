@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthTokens
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAccessToken
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
@@ -47,7 +47,7 @@ class AuthControllerTests {
     @Test
     fun `신원 티켓과 닉네임으로 가입하고 액세스 토큰을 응답한다`() {
         val command = SignupCommand("피카츄", "identity-ticket")
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
@@ -96,7 +96,7 @@ class AuthControllerTests {
 
     @Test
     fun `신원 티켓으로 로그인하고 액세스 토큰을 응답한다`() {
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
@@ -121,7 +121,7 @@ class AuthControllerTests {
 
     @Test
     fun `리프레시 토큰을 회전하고 새 액세스 토큰을 응답한다`() {
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("new-access-token"),
             refreshToken = IssuedRefreshToken("new-refresh-token", Duration.ofDays(14)),
         )

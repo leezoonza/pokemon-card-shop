@@ -47,16 +47,16 @@ class AuthServiceTests {
             IdentityProvider.GOOGLE,
             "google-subject",
         )
-        val memberCommand = slot<MemberRegisterCommand>()
+        val memberCommand = slot<RegisterMemberCommand>()
         val externalIdentity = slot<ExternalIdentity>()
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
 
         every { identityTicketStore.consume(command.identityTicket) } returns verifiedIdentity
         every { memberRegistrationApi.register(capture(memberCommand)) } returns
-                MemberRegisterResult(42L, "MEMBER")
+                RegisterMemberResult(42L, "MEMBER")
         every { externalIdentityRepository.save(capture(externalIdentity)) } answers {
             firstArg()
         }
@@ -120,7 +120,7 @@ class AuthServiceTests {
             createdAt = CREATED_AT.minusSeconds(60),
         )
         val memberLoginCommand = slot<MemberLoginCommand>()
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
@@ -218,7 +218,7 @@ class AuthServiceTests {
 
     @Test
     fun `리프레시 토큰을 회전하고 인증 토큰을 다시 발급한다`() {
-        val tokens = AuthTokens(
+        val tokens = IssuedAuthTokens(
             accessToken = IssuedAccessToken("new-access-token"),
             refreshToken = IssuedRefreshToken("new-refresh-token", Duration.ofDays(14)),
         )

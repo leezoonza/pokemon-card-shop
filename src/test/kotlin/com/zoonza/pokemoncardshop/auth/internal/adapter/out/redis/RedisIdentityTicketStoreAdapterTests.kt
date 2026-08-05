@@ -58,6 +58,19 @@ class RedisIdentityTicketStoreAdapterTests {
     }
 
     @Test
+    fun `이전 식별자 필드로 저장된 신원 티켓도 소비한다`() {
+        val value = """{"provider":"GOOGLE","identifier":"google-subject"}"""
+        every { redisTemplate.opsForValue() } returns valueOperations
+        every {
+            valueOperations.getAndDelete("auth:identity:ticket:identity-ticket")
+        } returns value
+
+        val result = store.consume("identity-ticket")
+
+        result shouldBe VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
+    }
+
+    @Test
     fun `저장되지 않은 신원 티켓은 거절한다`() {
         every { redisTemplate.opsForValue() } returns valueOperations
         every {

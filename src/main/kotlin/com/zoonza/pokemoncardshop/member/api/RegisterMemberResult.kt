@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.member.api
 
-data class MemberRegisterResult(
+data class RegisterMemberResult(
     val memberId: Long,
     val role: String
 )

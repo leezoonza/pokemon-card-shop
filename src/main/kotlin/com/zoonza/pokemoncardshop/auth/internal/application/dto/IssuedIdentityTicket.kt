@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.auth.internal.application.dto
 
 import java.time.Duration
 
-data class IdentityTicketResult(
+data class IssuedIdentityTicket(
     val purpose: IdentityTicketPurpose,
     val ticket: String
 )

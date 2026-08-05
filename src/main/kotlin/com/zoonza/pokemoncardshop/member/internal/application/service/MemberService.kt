@@ -15,12 +15,12 @@ class MemberService(
     MemberLoginApi,
     MemberRoleQueryApi {
 
-    override fun check(nickname: Nickname): Boolean {
+    override fun isAvailable(nickname: Nickname): Boolean {
         return !memberRepository.existsByNickname(nickname)
     }
 
     @Transactional
-    override fun register(command: MemberRegisterCommand): MemberRegisterResult {
+    override fun register(command: RegisterMemberCommand): RegisterMemberResult {
         val nickname = Nickname(command.nickname)
 
         validateUniqueNickname(nickname)
@@ -33,7 +33,7 @@ class MemberService(
 
         val saved = memberRepository.save(member)
 
-        return MemberRegisterResult(saved.id, saved.role.value)
+        return RegisterMemberResult(saved.id, saved.role.value)
     }
 
     @Transactional

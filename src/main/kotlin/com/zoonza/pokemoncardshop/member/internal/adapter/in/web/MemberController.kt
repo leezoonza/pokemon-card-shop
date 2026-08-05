@@ -18,7 +18,7 @@ class MemberController(
     fun checkNicknameAvailability(
         @RequestParam nickname: String
     ): ApiResponse<NicknameAvailabilityResponse> {
-        val available = checkNicknameAvailabilityUseCase.check(Nickname(nickname))
+        val available = checkNicknameAvailabilityUseCase.isAvailable(Nickname(nickname))
 
         return ApiResponse.success(NicknameAvailabilityResponse(available))
     }

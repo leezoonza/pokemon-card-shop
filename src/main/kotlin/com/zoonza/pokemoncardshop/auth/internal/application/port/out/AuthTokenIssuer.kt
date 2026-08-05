@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.port.out
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthTokens
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
 
 interface AuthTokenIssuer {
-    fun issue(memberId: Long, role: String): AuthTokens
+    fun issue(memberId: Long, role: String): IssuedAuthTokens
 }

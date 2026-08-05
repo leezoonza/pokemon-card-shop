@@ -22,7 +22,7 @@ class IdentityTicketServiceTests {
         val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "new-subject")
 
         every {
-            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.identifier)
+            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.subject)
         } returns false
 
         every { identityTicketStore.issue(identity, IdentityTicketPurpose.SIGNUP.ttl) } returns "signup-ticket"
@@ -33,7 +33,7 @@ class IdentityTicketServiceTests {
         result.ticket shouldBe "signup-ticket"
 
         verify(exactly = 1) {
-            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.identifier)
+            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.subject)
             identityTicketStore.issue(identity, IdentityTicketPurpose.SIGNUP.ttl)
         }
     }
@@ -43,7 +43,7 @@ class IdentityTicketServiceTests {
         val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "registered-subject")
 
         every {
-            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.identifier)
+            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.subject)
         } returns true
 
         every { identityTicketStore.issue(identity, IdentityTicketPurpose.LOGIN.ttl) } returns "login-ticket"
@@ -54,7 +54,7 @@ class IdentityTicketServiceTests {
         result.ticket shouldBe "login-ticket"
 
         verify(exactly = 1) {
-            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.identifier)
+            externalIdentityRepository.existsByProviderAndSubject(identity.provider, identity.subject)
             identityTicketStore.issue(identity, IdentityTicketPurpose.LOGIN.ttl)
         }
     }

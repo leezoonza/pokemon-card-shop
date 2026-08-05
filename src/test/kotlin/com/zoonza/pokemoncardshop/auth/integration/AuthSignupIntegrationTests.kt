@@ -59,7 +59,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
     fun `검증된 연동 계정으로 가입하고 인증 상태를 생성한다`() {
         val verifiedIdentity = VerifiedExternalIdentity(
             provider = IdentityProvider.GOOGLE,
-            identifier = "google-subject",
+            subject = "google-subject",
         )
         val identityTicket = identityTicketStore.issue(
             verifiedIdentity,
@@ -118,7 +118,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
         val externalIdentity = identities.single()
 
         externalIdentity.provider shouldBe verifiedIdentity.provider
-        externalIdentity.subject shouldBe verifiedIdentity.identifier
+        externalIdentity.subject shouldBe verifiedIdentity.subject
         externalIdentity.memberId shouldBe member.id
 
         val jwt = jwtDecoder.decode(accessToken)
