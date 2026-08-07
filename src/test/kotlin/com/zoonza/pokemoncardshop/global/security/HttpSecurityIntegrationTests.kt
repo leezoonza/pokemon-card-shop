@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Import
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockHttpServletRequest
+import org.springframework.security.core.authority.SimpleGrantedAuthority
+import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
@@ -46,6 +48,18 @@ class HttpSecurityIntegrationTests @Autowired constructor(
             .andExpect {
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
+            }
+    }
+
+    @Test
+    fun `일반 회원은 관리자 API에 접근할 수 없다`() {
+        mockMvc.get("/api/admin/catalog/imports") {
+            with(jwt().authorities(SimpleGrantedAuthority("ROLE_MEMBER")))
+        }
+            .andExpect {
+                status { isForbidden() }
+                jsonPath("$.success") { value(false) }
+                jsonPath("$.data.code") { value("SECURITY-002") }
             }
     }
 

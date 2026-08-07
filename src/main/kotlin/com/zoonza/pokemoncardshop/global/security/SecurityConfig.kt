@@ -48,6 +48,7 @@ class SecurityConfig(
                     "/api/members/nickname",
                     "/error",
                 ).permitAll()
+                auth.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 auth.anyRequest().authenticated()
             }
             .exceptionHandling { exceptions ->
