@@ -67,7 +67,7 @@ class AuthServiceTests {
 
         val result = service.signup(command)
 
-        result shouldBe tokens
+        result shouldBe AuthenticationResult(tokens, "MEMBER")
 
         memberCommand.captured.nickname shouldBe command.nickname
         memberCommand.captured.createdAt shouldBe CREATED_AT
@@ -141,7 +141,7 @@ class AuthServiceTests {
 
         val result = service.login("identity-ticket")
 
-        result shouldBe tokens
+        result shouldBe AuthenticationResult(tokens, "MEMBER")
         memberLoginCommand.captured.memberId shouldBe 42L
         memberLoginCommand.captured.loggedInAt shouldBe CREATED_AT
 
@@ -209,7 +209,7 @@ class AuthServiceTests {
             service.login("identity-ticket")
         }
 
-        exception.message shouldBe "연동 계정에 연결된 회원 정보가 존재하지 않습니다."
+        exception.message shouldBe "연결된 회원 정보가 존재하지 않습니다."
         verify(exactly = 0) {
             authTokenIssuer.issue(any(), any())
             refreshTokenStore.save(any(), any(), any())
@@ -232,7 +232,7 @@ class AuthServiceTests {
 
         val result = service.reissue("refresh-token")
 
-        result shouldBe tokens
+        result shouldBe AuthenticationResult(tokens, "MEMBER")
         verifyOrder {
             refreshTokenStore.consume("refresh-token")
             memberRoleQueryApi.findByMemberId(42L)

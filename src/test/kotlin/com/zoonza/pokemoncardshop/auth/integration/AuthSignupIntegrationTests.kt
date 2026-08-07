@@ -79,6 +79,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
                 status { isOk() }
                 jsonPath("$.success") { value(true) }
                 jsonPath("$.data.accessToken") { isNotEmpty() }
+                jsonPath("$.data.role") { value(MemberRole.MEMBER.value) }
             }
             .andReturn()
 

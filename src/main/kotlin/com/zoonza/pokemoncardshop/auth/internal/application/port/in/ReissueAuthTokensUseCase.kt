@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.port.`in`
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthenticationResult
 import com.zoonza.pokemoncardshop.common.error.DomainException
 
 /**
@@ -13,8 +13,8 @@ interface ReissueAuthTokensUseCase {
      * 발급에 성공하면 기존 리프레시 토큰은 더 이상 사용할 수 없다.
      *
      * @param refreshToken 재발급에 사용할 리프레시 토큰
-     * @return 새로 발급된 액세스 토큰과 리프레시 토큰
+     * @return 새로 발급된 인증 토큰과 인증된 회원의 역할
      * @throws DomainException 토큰이 없거나 비어 있거나 유효하지 않은 경우
      */
-    fun reissue(refreshToken: String?): IssuedAuthTokens
+    fun reissue(refreshToken: String?): AuthenticationResult
 }

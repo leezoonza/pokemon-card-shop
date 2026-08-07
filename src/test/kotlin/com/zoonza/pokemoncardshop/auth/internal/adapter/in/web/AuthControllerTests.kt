@@ -1,9 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAccessToken
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.*
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
@@ -51,7 +48,7 @@ class AuthControllerTests {
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
-        every { signupUseCase.signup(command) } returns tokens
+        every { signupUseCase.signup(command) } returns AuthenticationResult(tokens, "MEMBER")
         every { identityTicketCookieManager.clear(any()) } just Runs
         every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
 
@@ -64,6 +61,7 @@ class AuthControllerTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+            .andExpect(jsonPath("$.data.role").value("MEMBER"))
 
         verify(exactly = 1) { signupUseCase.signup(command) }
         verify(exactly = 1) { identityTicketCookieManager.clear(any()) }
@@ -100,7 +98,7 @@ class AuthControllerTests {
             accessToken = IssuedAccessToken("access-token"),
             refreshToken = IssuedRefreshToken("refresh-token", Duration.ofDays(14)),
         )
-        every { loginUseCase.login("identity-ticket") } returns tokens
+        every { loginUseCase.login("identity-ticket") } returns AuthenticationResult(tokens, "ADMIN")
         every { identityTicketCookieManager.clear(any()) } just Runs
         every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
 
@@ -111,6 +109,7 @@ class AuthControllerTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.accessToken").value("access-token"))
+            .andExpect(jsonPath("$.data.role").value("ADMIN"))
 
         verify(exactly = 1) { loginUseCase.login("identity-ticket") }
         verify(exactly = 1) { identityTicketCookieManager.clear(any()) }
@@ -125,7 +124,8 @@ class AuthControllerTests {
             accessToken = IssuedAccessToken("new-access-token"),
             refreshToken = IssuedRefreshToken("new-refresh-token", Duration.ofDays(14)),
         )
-        every { reissueAuthTokensUseCase.reissue("refresh-token") } returns tokens
+        every { reissueAuthTokensUseCase.reissue("refresh-token") } returns
+                AuthenticationResult(tokens, "ADMIN")
         every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
 
         mockMvc.perform(
@@ -135,6 +135,7 @@ class AuthControllerTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.accessToken").value("new-access-token"))
+            .andExpect(jsonPath("$.data.role").value("ADMIN"))
 
         verify(exactly = 1) { reissueAuthTokensUseCase.reissue("refresh-token") }
         verify(exactly = 1) {

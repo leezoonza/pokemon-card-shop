@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.service
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthenticationResult
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
@@ -35,7 +35,7 @@ class AuthService(
     ReissueAuthTokensUseCase {
 
     @Transactional
-    override fun signup(command: SignupCommand): IssuedAuthTokens {
+    override fun signup(command: SignupCommand): AuthenticationResult {
         val verifiedIdentity = identityTicketStore.consume(command.identityTicket)
 
         val createdAt = Instant.now(clock)
@@ -61,11 +61,11 @@ class AuthService(
             ttl = authTokens.refreshToken.ttl
         )
 
-        return authTokens
+        return AuthenticationResult(authTokens, result.role)
     }
 
     @Transactional
-    override fun login(identityTicket: String): IssuedAuthTokens {
+    override fun login(identityTicket: String): AuthenticationResult {
         val verifiedIdentity = identityTicketStore.consume(identityTicket)
 
         val loggedInAt = Instant.now(clock)
@@ -77,7 +77,7 @@ class AuthService(
         val command = MemberLoginCommand(externalIdentity.memberId, loggedInAt)
 
         val result = memberLoginApi.recordLogin(command)
-            ?: throw IllegalStateException("연동 계정에 연결된 회원 정보가 존재하지 않습니다.")
+            ?: throw IllegalStateException("연결된 회원 정보가 존재하지 않습니다.")
 
 
         val authTokens = authTokenIssuer.issue(
@@ -91,10 +91,10 @@ class AuthService(
             ttl = authTokens.refreshToken.ttl
         )
 
-        return authTokens
+        return AuthenticationResult(authTokens, result.role)
     }
 
-    override fun reissue(refreshToken: String?): IssuedAuthTokens {
+    override fun reissue(refreshToken: String?): AuthenticationResult {
         val token = refreshToken
             ?.takeIf { it.isNotBlank() }
             ?: throw DomainException(AuthErrorCode.INVALID_REFRESH_TOKEN)
@@ -112,7 +112,7 @@ class AuthService(
             ttl = authTokens.refreshToken.ttl,
         )
 
-        return authTokens
+        return AuthenticationResult(authTokens, result.role)
     }
 
     override fun logout(refreshToken: String?) {
