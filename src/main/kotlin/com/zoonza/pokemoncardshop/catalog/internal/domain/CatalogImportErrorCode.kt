@@ -64,17 +64,17 @@ enum class CatalogImportErrorCode(
     ),
     SOURCE_DATA_NOT_FOUND(
         "CATALOG-IMPORT-012",
-        "TCGdex에서 요청한 카탈로그 데이터를 찾을 수 없습니다.",
+        "외부 카탈로그에서 요청한 데이터를 찾을 수 없습니다.",
         404,
     ),
     SOURCE_UNAVAILABLE(
         "CATALOG-IMPORT-013",
-        "TCGdex 카탈로그를 일시적으로 조회할 수 없습니다.",
+        "외부 카탈로그를 일시적으로 조회할 수 없습니다.",
         503,
     ),
     SOURCE_DATA_INVALID(
         "CATALOG-IMPORT-014",
-        "TCGdex 카탈로그 데이터 형식이 올바르지 않습니다.",
+        "외부 카탈로그 데이터 형식이 올바르지 않습니다.",
         502,
     ),
     DUPLICATE_SOURCE_DATA(
