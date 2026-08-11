@@ -3,9 +3,9 @@ package com.zoonza.pokemoncardshop.catalog.internal.application.service
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceExpansionSummary
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceSeries
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceSeriesSummary
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
-import com.zoonza.pokemoncardshop.catalog.internal.domain.ExpansionRepository
-import com.zoonza.pokemoncardshop.catalog.internal.domain.SeriesRepository
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
 import io.mockk.every
@@ -15,25 +15,25 @@ import org.junit.jupiter.api.Test
 
 class CatalogImportQueryServiceTests {
 
-    private val catalogSourcePort = mockk<CatalogSourcePort>()
+    private val catalogSourceFetcher = mockk<CatalogSourceFetcher>()
     private val seriesRepository = mockk<SeriesRepository>()
     private val expansionRepository = mockk<ExpansionRepository>()
     private val service = CatalogImportQueryService(
-        catalogSourcePort = catalogSourcePort,
+        catalogSourceFetcher = catalogSourceFetcher,
         seriesRepository = seriesRepository,
         expansionRepository = expansionRepository,
     )
 
     @Test
     fun `로고가 있는 시리즈만 등록 후보로 조회한다`() {
-        every { catalogSourcePort.getSeriesSummaries() } returns listOf(
+        every { catalogSourceFetcher.fetchSeriesSummaries() } returns listOf(
             SourceSeriesSummary("sv", "Scarlet & Violet", "https://image/sv.png"),
             SourceSeriesSummary("none", "No Logo", null),
             SourceSeriesSummary("blank", "Blank Logo", ""),
         )
         every { seriesRepository.findBySourceId("sv") } returns null
 
-        val result = service.getSeriesCandidates()
+        val result = service.findSeries()
 
         result.map { it.sourceId } shouldContainExactly listOf("sv")
         result.single().logoUrl shouldBe "https://image/sv.png"
@@ -47,7 +47,7 @@ class CatalogImportQueryServiceTests {
 
     @Test
     fun `선택한 시리즈에서 로고가 있는 확장팩만 조회한다`() {
-        every { catalogSourcePort.getSeries("sv") } returns SourceSeries(
+        every { catalogSourceFetcher.fetchSeries("sv") } returns SourceSeries(
             sourceId = "sv",
             name = "Scarlet & Violet",
             logoUrl = "https://image/sv.png",
@@ -68,7 +68,7 @@ class CatalogImportQueryServiceTests {
         )
         every { expansionRepository.existsBySourceId("sv01") } returns true
 
-        val result = service.getExpansionCandidates("sv")
+        val result = service.findExpansions("sv")
 
         result.map { it.sourceId } shouldContainExactly listOf("sv01")
         result.single().registered shouldBe true

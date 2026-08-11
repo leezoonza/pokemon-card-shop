@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.series
 
 interface SeriesRepository {
     fun findBySourceId(sourceId: String): Series?

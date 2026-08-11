@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.catalog.internal.application.port.dto
 
-import com.zoonza.pokemoncardshop.catalog.internal.domain.CardCategory
-import com.zoonza.pokemoncardshop.catalog.internal.domain.CardRarity
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardCategory
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
 import java.time.LocalDate
 
 data class CatalogRegistrationPlan(

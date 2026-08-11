@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.expansion
 
 import jakarta.persistence.Column
 import jakarta.persistence.Embeddable

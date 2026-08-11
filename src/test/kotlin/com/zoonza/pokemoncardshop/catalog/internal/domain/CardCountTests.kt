@@ -1,5 +1,7 @@
 package com.zoonza.pokemoncardshop.catalog.internal.domain
 
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.CardCount
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionErrorCode
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe

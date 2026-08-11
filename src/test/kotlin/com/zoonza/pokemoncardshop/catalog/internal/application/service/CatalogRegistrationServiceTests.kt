@@ -2,6 +2,13 @@ package com.zoonza.pokemoncardshop.catalog.internal.application.service
 
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
 import com.zoonza.pokemoncardshop.catalog.internal.domain.*
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.*
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.CardCount
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.Expansion
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionImage
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.Series
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk

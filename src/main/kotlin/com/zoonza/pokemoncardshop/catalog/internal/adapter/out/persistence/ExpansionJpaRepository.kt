@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.persistence
 
-import com.zoonza.pokemoncardshop.catalog.internal.domain.Expansion
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.Expansion
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface ExpansionJpaRepository : JpaRepository<Expansion, Long> {

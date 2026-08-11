@@ -1,6 +1,6 @@
-package com.zoonza.pokemoncardshop.catalog.internal.adapter.`in`.web.dto
+package com.zoonza.pokemoncardshop.catalog.internal.application.port.dto
 
-data class ExpansionImportCandidateResponse(
+data class ExpansionCandidateSummary(
     val sourceId: String,
     val name: String,
     val logoUrl: String,

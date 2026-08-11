@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.card
 
 enum class CardCategory(val value: String) {
     POKEMON("Pokemon"),

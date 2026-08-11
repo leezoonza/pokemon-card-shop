@@ -2,10 +2,9 @@ package com.zoonza.pokemoncardshop.catalog.internal.adapter.`in`.web
 
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CatalogImportCommand
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CatalogImportResult
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionImportCandidateResult
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesImportCandidateResult
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.GetExpansionImportCandidatesUseCase
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.GetSeriesImportCandidatesUseCase
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionCandidateSummary
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesCandidateSummary
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogCandidateFinder
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.ImportCatalogUseCase
 import io.mockk.every
 import io.mockk.mockk
@@ -20,14 +19,12 @@ import java.time.LocalDate
 
 class CatalogImportControllerTests {
 
-    private val getSeriesCandidates = mockk<GetSeriesImportCandidatesUseCase>()
-    private val getExpansionCandidates = mockk<GetExpansionImportCandidatesUseCase>()
+    private val catalogCandidateFinder = mockk<CatalogCandidateFinder>()
     private val importCatalog = mockk<ImportCatalogUseCase>()
     private val mockMvc: MockMvc = MockMvcBuilders
         .standaloneSetup(
             CatalogImportController(
-                getSeriesImportCandidatesUseCase = getSeriesCandidates,
-                getExpansionImportCandidatesUseCase = getExpansionCandidates,
+                catalogCandidateFinder = catalogCandidateFinder,
                 importCatalogUseCase = importCatalog,
             ),
         )
@@ -35,8 +32,8 @@ class CatalogImportControllerTests {
 
     @Test
     fun `시리즈 등록 후보를 응답한다`() {
-        every { getSeriesCandidates.getSeriesCandidates() } returns listOf(
-            SeriesImportCandidateResult(
+        every { catalogCandidateFinder.findSeries() } returns listOf(
+            SeriesCandidateSummary(
                 sourceId = "sv",
                 name = "Scarlet & Violet",
                 logoUrl = "https://image/sv.png",
@@ -53,13 +50,13 @@ class CatalogImportControllerTests {
                 jsonPath("$.data[0].registered") { value(false) }
             }
 
-        verify(exactly = 1) { getSeriesCandidates.getSeriesCandidates() }
+        verify(exactly = 1) { catalogCandidateFinder.findSeries() }
     }
 
     @Test
     fun `선택한 시리즈의 확장팩 등록 후보를 응답한다`() {
-        every { getExpansionCandidates.getExpansionCandidates("sv") } returns listOf(
-            ExpansionImportCandidateResult(
+        every { catalogCandidateFinder.findExpansions("sv") } returns listOf(
+            ExpansionCandidateSummary(
                 sourceId = "sv01",
                 name = "Scarlet & Violet",
                 logoUrl = "https://image/sv01.png",
@@ -76,7 +73,7 @@ class CatalogImportControllerTests {
                 jsonPath("$.data[0].symbolUrl") { doesNotExist() }
             }
 
-        verify(exactly = 1) { getExpansionCandidates.getExpansionCandidates("sv") }
+        verify(exactly = 1) { catalogCandidateFinder.findExpansions("sv") }
     }
 
     @Test

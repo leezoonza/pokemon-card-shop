@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.tcgdex
 
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
 import com.zoonza.pokemoncardshop.catalog.internal.domain.CatalogImportErrorCode
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import io.github.oshai.kotlinlogging.KotlinLogging
@@ -22,9 +22,9 @@ private val logger = KotlinLogging.logger {}
 @Component
 class TcgdexCatalogSourceAdapter(
     private val client: TCGdex,
-) : CatalogSourcePort {
+) : CatalogSourceFetcher {
 
-    override fun getSeriesSummaries(): List<SourceSeriesSummary> =
+    override fun fetchSeriesSummaries(): List<SourceSeriesSummary> =
         fetchSource {
             client.fetchSeries()
                 ?.map { series ->
@@ -37,7 +37,7 @@ class TcgdexCatalogSourceAdapter(
                 ?: sourceNotFound()
         }
 
-    override fun getSeries(sourceId: String): SourceSeries =
+    override fun fetchSeries(sourceId: String): SourceSeries =
         fetchSource {
             client.fetchSerie(sourceId)
                 ?.toSourceSeries()

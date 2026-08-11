@@ -2,8 +2,13 @@ package com.zoonza.pokemoncardshop.catalog.internal.application.service
 
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.RegisterCatalogData
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
-import com.zoonza.pokemoncardshop.catalog.internal.domain.*
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
+import com.zoonza.pokemoncardshop.catalog.internal.domain.CatalogImportErrorCode
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardCategory
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.Series
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -16,12 +21,12 @@ import java.time.LocalDate
 
 class CatalogImportServiceTests {
 
-    private val catalogSourcePort = mockk<CatalogSourcePort>()
+    private val catalogSourceFetcher = mockk<CatalogSourceFetcher>()
     private val seriesRepository = mockk<SeriesRepository>()
     private val expansionRepository = mockk<ExpansionRepository>()
     private val registerCatalogData = mockk<RegisterCatalogData>()
     private val service = CatalogImportService(
-        catalogSourcePort = catalogSourcePort,
+        catalogSourceFetcher = catalogSourceFetcher,
         seriesRepository = seriesRepository,
         expansionRepository = expansionRepository,
         registerCatalogData = registerCatalogData,
@@ -31,11 +36,11 @@ class CatalogImportServiceTests {
     fun `선택한 시리즈와 확장팩의 모든 카드를 등록한다`() {
         val planSlot = slot<CatalogRegistrationPlan>()
         val command = command()
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries()
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries()
         every { seriesRepository.findBySourceId("sv") } returns null
         every { expansionRepository.existsBySourceId("sv01") } returns false
-        every { catalogSourcePort.getExpansion("sv01") } returns sourceExpansion()
-        every { catalogSourcePort.getCard("sv01-1") } returns sourceCard()
+        every { catalogSourceFetcher.getExpansion("sv01") } returns sourceExpansion()
+        every { catalogSourceFetcher.getCard("sv01-1") } returns sourceCard()
         every { registerCatalogData.register(capture(planSlot)) } returns CatalogImportResult(
             seriesId = 1L,
             expansionCount = 1,
@@ -55,16 +60,16 @@ class CatalogImportServiceTests {
             expansions.single().cards.single().illustrator shouldBe "Unknown"
         }
         verify(exactly = 1) {
-            catalogSourcePort.getSeries("sv")
-            catalogSourcePort.getExpansion("sv01")
-            catalogSourcePort.getCard("sv01-1")
+            catalogSourceFetcher.fetchSeries("sv")
+            catalogSourceFetcher.getExpansion("sv01")
+            catalogSourceFetcher.getCard("sv01-1")
             registerCatalogData.register(any())
         }
     }
 
     @Test
     fun `로고가 없는 시리즈는 등록하지 않는다`() {
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries(logoUrl = null)
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries(logoUrl = null)
 
         val exception = shouldThrow<DomainException> {
             service.importCatalog(command())
@@ -76,7 +81,7 @@ class CatalogImportServiceTests {
 
     @Test
     fun `다른 시리즈의 확장팩은 등록하지 않는다`() {
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries(
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries(
             expansions = listOf(
                 SourceExpansionSummary("sv02", "Paldea Evolved", "logo", null),
             ),
@@ -89,17 +94,17 @@ class CatalogImportServiceTests {
 
         exception.errorCode shouldBe CatalogImportErrorCode.EXPANSION_NOT_IN_SERIES
         verify(exactly = 0) {
-            catalogSourcePort.getExpansion(any())
+            catalogSourceFetcher.getExpansion(any())
             registerCatalogData.register(any())
         }
     }
 
     @Test
     fun `로고가 없는 확장팩은 등록하지 않는다`() {
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries()
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries()
         every { seriesRepository.findBySourceId("sv") } returns null
         every { expansionRepository.existsBySourceId("sv01") } returns false
-        every { catalogSourcePort.getExpansion("sv01") } returns sourceExpansion(logoUrl = null)
+        every { catalogSourceFetcher.getExpansion("sv01") } returns sourceExpansion(logoUrl = null)
 
         val exception = shouldThrow<DomainException> {
             service.importCatalog(command())
@@ -107,14 +112,14 @@ class CatalogImportServiceTests {
 
         exception.errorCode shouldBe CatalogImportErrorCode.EXPANSION_LOGO_REQUIRED
         verify(exactly = 0) {
-            catalogSourcePort.getCard(any())
+            catalogSourceFetcher.getCard(any())
             registerCatalogData.register(any())
         }
     }
 
     @Test
     fun `기존 시리즈의 출시일이 다르면 확장팩을 추가하지 않는다`() {
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries()
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries()
         every { seriesRepository.findBySourceId("sv") } returns Series.register(
             sourceId = "sv",
             name = "Scarlet & Violet",
@@ -135,11 +140,11 @@ class CatalogImportServiceTests {
 
     @Test
     fun `지원하지 않는 카드 희귀도가 있으면 등록하지 않는다`() {
-        every { catalogSourcePort.getSeries("sv") } returns sourceSeries()
+        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeries()
         every { seriesRepository.findBySourceId("sv") } returns null
         every { expansionRepository.existsBySourceId("sv01") } returns false
-        every { catalogSourcePort.getExpansion("sv01") } returns sourceExpansion()
-        every { catalogSourcePort.getCard("sv01-1") } returns sourceCard(rarity = "Unknown Rare")
+        every { catalogSourceFetcher.getExpansion("sv01") } returns sourceExpansion()
+        every { catalogSourceFetcher.getCard("sv01-1") } returns sourceCard(rarity = "Unknown Rare")
 
         val exception = shouldThrow<DomainException> {
             service.importCatalog(command())

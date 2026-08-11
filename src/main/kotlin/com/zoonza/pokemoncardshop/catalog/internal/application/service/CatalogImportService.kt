@@ -3,15 +3,19 @@ package com.zoonza.pokemoncardshop.catalog.internal.application.service
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.ImportCatalogUseCase
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.RegisterCatalogData
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
-import com.zoonza.pokemoncardshop.catalog.internal.domain.*
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
+import com.zoonza.pokemoncardshop.catalog.internal.domain.CatalogImportErrorCode
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardCategory
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 
 @Service
 class CatalogImportService(
-    private val catalogSourcePort: CatalogSourcePort,
+    private val catalogSourceFetcher: CatalogSourceFetcher,
     private val seriesRepository: SeriesRepository,
     private val expansionRepository: ExpansionRepository,
     private val registerCatalogData: RegisterCatalogData,
@@ -20,7 +24,7 @@ class CatalogImportService(
     override fun importCatalog(command: CatalogImportCommand): CatalogImportResult {
         validateSelection(command.expansionSourceIds)
 
-        val sourceSeries = catalogSourcePort.getSeries(command.seriesSourceId)
+        val sourceSeries = catalogSourceFetcher.fetchSeries(command.seriesSourceId)
         requireLogo(sourceSeries.logoUrl, CatalogImportErrorCode.SERIES_LOGO_REQUIRED)
         validateExistingSeries(sourceSeries.sourceId, command.seriesReleaseDate)
         validateExpansionMembership(sourceSeries, command.expansionSourceIds)
@@ -81,7 +85,7 @@ class CatalogImportService(
         seriesSourceId: String,
         expansionSourceId: String,
     ): ExpansionRegistrationData {
-        val sourceExpansion = catalogSourcePort.getExpansion(expansionSourceId)
+        val sourceExpansion = catalogSourceFetcher.getExpansion(expansionSourceId)
         if (sourceExpansion.seriesSourceId != seriesSourceId) {
             throw DomainException(CatalogImportErrorCode.EXPANSION_NOT_IN_SERIES)
         }
@@ -90,7 +94,7 @@ class CatalogImportService(
             CatalogImportErrorCode.EXPANSION_LOGO_REQUIRED,
         )
         val cards = sourceExpansion.cardSourceIds.map { sourceId ->
-            prepareCard(expansionSourceId, catalogSourcePort.getCard(sourceId))
+            prepareCard(expansionSourceId, catalogSourceFetcher.getCard(sourceId))
         }
 
         return ExpansionRegistrationData(

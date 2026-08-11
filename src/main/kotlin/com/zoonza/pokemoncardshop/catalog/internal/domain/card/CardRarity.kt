@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.card
 
 enum class CardRarity(val value: String) {
     ACE_SPEC_RARE("ACE SPEC Rare"),

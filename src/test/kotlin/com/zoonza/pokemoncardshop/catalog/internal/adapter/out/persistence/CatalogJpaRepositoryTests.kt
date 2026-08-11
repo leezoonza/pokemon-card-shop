@@ -2,6 +2,14 @@ package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.persistence
 
 import com.zoonza.pokemoncardshop.MySqlTestcontainersConfiguration
 import com.zoonza.pokemoncardshop.catalog.internal.domain.*
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.Card
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardCategory
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardVariants
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.CardCount
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.Expansion
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionImage
+import com.zoonza.pokemoncardshop.catalog.internal.domain.series.Series
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import jakarta.persistence.EntityManager
@@ -53,7 +61,7 @@ class CatalogJpaRepositoryTests @Autowired constructor(
                 expansionId = expansion.id,
                 sourceId = "sv01-1",
                 category = CardCategory.POKEMON,
-                number = "1",
+                localId = "1",
                 name = "Pikachu",
                 imageUrl = "https://image/sv01-1/high.webp",
                 illustrator = "Unknown",

@@ -1,8 +1,8 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.persistence
 
 import com.zoonza.pokemoncardshop.catalog.internal.domain.CatalogImportErrorCode
-import com.zoonza.pokemoncardshop.catalog.internal.domain.Expansion
-import com.zoonza.pokemoncardshop.catalog.internal.domain.ExpansionRepository
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.Expansion
+import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Repository

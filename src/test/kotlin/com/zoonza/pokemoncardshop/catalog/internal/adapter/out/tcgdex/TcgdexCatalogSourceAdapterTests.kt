@@ -94,7 +94,7 @@ class TcgdexCatalogSourceAdapterTests {
         every { client.fetchSerie("missing") } returns null
 
         val exception = shouldThrow<DomainException> {
-            adapter.getSeries("missing")
+            adapter.fetchSeries("missing")
         }
 
         exception.errorCode shouldBe CatalogImportErrorCode.SOURCE_DATA_NOT_FOUND

@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.expansion
 
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import jakarta.persistence.Column

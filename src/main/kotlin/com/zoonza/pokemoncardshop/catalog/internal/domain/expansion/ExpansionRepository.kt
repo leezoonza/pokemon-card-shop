@@ -1,4 +1,4 @@
-package com.zoonza.pokemoncardshop.catalog.internal.domain
+package com.zoonza.pokemoncardshop.catalog.internal.domain.expansion
 
 interface ExpansionRepository {
     fun existsBySourceId(sourceId: String): Boolean
