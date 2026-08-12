@@ -3,10 +3,7 @@ package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.AuthenticationResponse
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.SignupRequest
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.Authenticator
 import com.zoonza.pokemoncardshop.common.response.ApiResponse
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -15,10 +12,7 @@ import org.springframework.web.bind.annotation.*
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val signupUseCase: SignupUseCase,
-    private val loginUseCase: LoginUseCase,
-    private val logoutUseCase: LogoutUseCase,
-    private val reissueAuthTokensUseCase: ReissueAuthTokensUseCase,
+    private val authenticator: Authenticator,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
     private val identityTicketCookieManager: IdentityTicketCookieManager
 ) {
@@ -30,7 +24,7 @@ class AuthController(
     ): ApiResponse<AuthenticationResponse> {
         val command = SignupCommand(request.nickname, identityTicket)
 
-        val result = signupUseCase.signup(command)
+        val result = authenticator.signup(command)
 
         identityTicketCookieManager.clear(response)
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
@@ -48,7 +42,7 @@ class AuthController(
         @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String,
         response: HttpServletResponse
     ): ApiResponse<AuthenticationResponse> {
-        val result = loginUseCase.login(identityTicket)
+        val result = authenticator.authenticate(identityTicket)
 
         identityTicketCookieManager.clear(response)
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
@@ -69,7 +63,7 @@ class AuthController(
         ) refreshToken: String?,
         response: HttpServletResponse,
     ): ApiResponse<AuthenticationResponse> {
-        val result = reissueAuthTokensUseCase.reissue(refreshToken)
+        val result = authenticator.reissue(refreshToken)
 
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
 
@@ -89,7 +83,7 @@ class AuthController(
         ) refreshToken: String?,
         response: HttpServletResponse,
     ): ApiResponse<Unit> {
-        logoutUseCase.logout(refreshToken)
+        authenticator.logout(refreshToken)
 
         refreshTokenCookieManager.clear(response)
 

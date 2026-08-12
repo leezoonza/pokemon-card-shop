@@ -3,9 +3,8 @@ package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedIdentityTicket
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IssueIdentityTicketUseCase
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketIssuer
+import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.*
@@ -23,15 +22,15 @@ import java.util.stream.Stream
 class OidcAuthenticationSuccessHandlerTests {
 
     private val cookieManager = mockk<IdentityTicketCookieManager>()
-    private val issueIdentityTicketUseCase = mockk<IssueIdentityTicketUseCase>()
+    private val identityTicketIssuer = mockk<IdentityTicketIssuer>()
     private val handler = OidcAuthenticationSuccessHandler(
+        identityTicketIssuer,
         RedirectProperties(
             signupUri = SIGNUP_URI,
             loginUri = LOGIN_URI,
             failureUri = "http://localhost:3000/login/error",
         ),
         cookieManager,
-        issueIdentityTicketUseCase,
     )
 
     @ParameterizedTest
@@ -40,7 +39,7 @@ class OidcAuthenticationSuccessHandlerTests {
         purpose: IdentityTicketPurpose,
         redirectUri: String,
     ) {
-        val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
+        val identity = verifiedExternalIdentityFixture()
         val authentication = mockk<Authentication>()
         val oidcUser = CustomOidcUser(
             mockk<OidcUser>(),
@@ -48,7 +47,7 @@ class OidcAuthenticationSuccessHandlerTests {
             identity.subject,
         )
         every { authentication.principal } returns oidcUser
-        every { issueIdentityTicketUseCase.issue(identity) } returns
+        every { identityTicketIssuer.issue(identity) } returns
                 IssuedIdentityTicket(purpose, "identity-ticket")
         every {
             cookieManager.write(any(), purpose, "identity-ticket")
@@ -64,7 +63,7 @@ class OidcAuthenticationSuccessHandlerTests {
 
         response.redirectedUrl shouldBe redirectUri
 
-        verify(exactly = 1) { issueIdentityTicketUseCase.issue(identity) }
+        verify(exactly = 1) { identityTicketIssuer.issue(identity) }
         verify(exactly = 1) { cookieManager.write(response, purpose, "identity-ticket") }
     }
 
@@ -84,7 +83,7 @@ class OidcAuthenticationSuccessHandlerTests {
 
         exception.error.errorCode shouldBe "invalid_oidc_principal"
 
-        verify(exactly = 0) { issueIdentityTicketUseCase.issue(any()) }
+        verify(exactly = 0) { identityTicketIssuer.issue(any()) }
         verify(exactly = 0) { cookieManager.write(any(), any(), any()) }
     }
 

@@ -1,8 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.redis
 
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -23,7 +22,7 @@ class RedisIdentityTicketStoreAdapterTests {
 
     @Test
     fun `연동 계정을 일회용 티켓으로 저장한다`() {
-        val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
+        val identity = verifiedExternalIdentityFixture()
         val ttl = Duration.ofMinutes(10)
         val key = slot<String>()
         val value = objectMapper.writeValueAsString(identity)
@@ -42,7 +41,7 @@ class RedisIdentityTicketStoreAdapterTests {
 
     @Test
     fun `저장된 신원 티켓을 한 번만 소비한다`() {
-        val identity = VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
+        val identity = verifiedExternalIdentityFixture()
         val value = objectMapper.writeValueAsString(identity)
         every { redisTemplate.opsForValue() } returns valueOperations
         every {
@@ -67,7 +66,7 @@ class RedisIdentityTicketStoreAdapterTests {
 
         val result = store.consume("identity-ticket")
 
-        result shouldBe VerifiedExternalIdentity(IdentityProvider.GOOGLE, "google-subject")
+        result shouldBe verifiedExternalIdentityFixture()
     }
 
     @Test

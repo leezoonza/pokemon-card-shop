@@ -6,8 +6,8 @@ import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIs
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberErrorCode
-import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
+import com.zoonza.pokemoncardshop.member.test.fake.memberFixture
 import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -21,7 +21,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.put
-import java.time.Instant
 
 @Import(TestcontainersConfiguration::class)
 @ActiveProfiles("test")
@@ -84,11 +83,7 @@ class MemberNicknameIntegrationTests @Autowired constructor(
 
     private fun saveMember(nickname: String): Member =
         memberRepository.saveAndFlush(
-            Member.register(
-                nickname = Nickname(nickname),
-                role = MemberRole.MEMBER,
-                createdAt = Instant.parse("2026-08-01T03:00:00Z"),
-            ),
+            memberFixture(nickname = Nickname(nickname)),
         )
 
     private fun accessTokenOf(member: Member): String =

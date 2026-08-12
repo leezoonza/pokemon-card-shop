@@ -6,10 +6,10 @@ import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCoo
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalIdentityJpaRepository
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
-import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
-import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
+import com.zoonza.pokemoncardshop.member.test.fake.memberFixture
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
@@ -26,7 +26,6 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.post
-import java.time.Instant
 
 @Import(TestcontainersConfiguration::class)
 @ActiveProfiles("test")
@@ -49,13 +48,7 @@ class AuthRefreshIntegrationTests @Autowired constructor(
 
     @Test
     fun `리프레시 토큰을 한 번만 사용하고 인증 상태를 갱신한다`() {
-        val member = memberRepository.saveAndFlush(
-            Member.register(
-                nickname = Nickname("피카츄"),
-                role = MemberRole.MEMBER,
-                createdAt = Instant.parse("2026-08-01T03:00:00Z"),
-            ),
-        )
+        val member = memberRepository.saveAndFlush(memberFixture())
         val originalTokens = authTokenIssuer.issue(member.id, member.role.value)
         refreshTokenStore.save(
             member.id,
@@ -114,6 +107,34 @@ class AuthRefreshIntegrationTests @Autowired constructor(
                 status { isUnauthorized() }
                 jsonPath("$.success") { value(false) }
                 jsonPath("$.data.code") { value("AUTH-003") }
+            }
+    }
+
+    @Test
+    fun `리프레시 토큰의 연결 회원이 없으면 유효하지 않은 토큰으로 응답한다`() {
+        val tokens = authTokenIssuer.issue(999L, MemberRole.MEMBER.value)
+        refreshTokenStore.save(
+            999L,
+            tokens.refreshToken.value,
+            tokens.refreshToken.ttl,
+        )
+
+        mockMvc.post("/api/auth/refresh") {
+            with(csrf())
+            cookie(
+                MockCookie(
+                    RefreshTokenCookieManager.COOKIE_NAME,
+                    tokens.refreshToken.value,
+                ),
+            )
+        }
+            .andExpect {
+                status { isUnauthorized() }
+                jsonPath("$.success") { value(false) }
+                jsonPath("$.data.code") { value(AuthErrorCode.INVALID_REFRESH_TOKEN.code) }
+                jsonPath("$.data.message") {
+                    value(AuthErrorCode.INVALID_REFRESH_TOKEN.message)
+                }
             }
     }
 }

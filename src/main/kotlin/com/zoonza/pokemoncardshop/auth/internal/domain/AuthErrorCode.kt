@@ -26,9 +26,9 @@ enum class AuthErrorCode(
         401,
     ),
 
-    EXTERNAL_IDENTITY_NOT_FOUND(
+    AUTHENTICATION_FAILED(
         "AUTH-004",
-        "외부 인증 정보를 찾을 수 없습니다.",
-        404,
+        "인증에 실패했습니다.",
+        401,
     ),
 }

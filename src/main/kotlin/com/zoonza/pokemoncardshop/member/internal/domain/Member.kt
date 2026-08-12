@@ -1,5 +1,6 @@
 package com.zoonza.pokemoncardshop.member.internal.domain
 
+import com.zoonza.pokemoncardshop.common.error.DomainException
 import jakarta.persistence.*
 import java.time.Instant
 
@@ -21,17 +22,31 @@ class Member private constructor(
     val role: MemberRole,
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
+    val status: MemberStatus,
+
+    @Column(nullable = false)
     val createdAt: Instant,
 
     @Column(nullable = false)
     var lastLoginAt: Instant,
 ) {
-    fun recordLogin(loggedInAt: Instant) {
+    fun login(loggedInAt: Instant) {
+        ensureActive()
+
         this.lastLoginAt = loggedInAt
     }
 
-    fun changeNickname(nickname: Nickname) {
+    fun updateNickname(nickname: Nickname) {
+        ensureActive()
+
         this.nickname = nickname
+    }
+
+    private fun ensureActive() {
+        if (status != MemberStatus.ACTIVE) {
+            throw DomainException(MemberErrorCode.DEACTIVATED_MEMBER)
+        }
     }
 
     companion object {
@@ -43,6 +58,7 @@ class Member private constructor(
             Member(
                 nickname = nickname,
                 role = role,
+                status = MemberStatus.ACTIVE,
                 createdAt = createdAt,
                 lastLoginAt = createdAt
             )

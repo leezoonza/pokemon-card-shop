@@ -1,9 +1,9 @@
 package com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web
 
 import com.zoonza.pokemoncardshop.global.exception.GlobalExceptionHandler
-import com.zoonza.pokemoncardshop.member.internal.application.dto.ChangeNicknameCommand
-import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.ChangeNicknameUseCase
-import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.CheckNicknameAvailabilityUseCase
+import com.zoonza.pokemoncardshop.member.internal.application.dto.UpdateNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
+import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberRegister
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberErrorCode
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
 import io.mockk.every
@@ -28,10 +28,10 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class MemberControllerTests {
 
-    private val checkNicknameAvailabilityUseCase = mockk<CheckNicknameAvailabilityUseCase>()
-    private val changeNicknameUseCase = mockk<ChangeNicknameUseCase>()
+    private val memberFinder = mockk<MemberFinder>()
+    private val memberRegister = mockk<MemberRegister>()
     private val mockMvc: MockMvc = MockMvcBuilders
-        .standaloneSetup(MemberController(checkNicknameAvailabilityUseCase, changeNicknameUseCase))
+        .standaloneSetup(MemberController(memberFinder, memberRegister))
         .setCustomArgumentResolvers(AuthenticationPrincipalArgumentResolver())
         .setControllerAdvice(GlobalExceptionHandler())
         .build()
@@ -52,7 +52,7 @@ class MemberControllerTests {
     fun `닉네임 사용 가능 여부를 응답한다`(available: Boolean) {
         val nickname = Nickname("피카츄")
 
-        every { checkNicknameAvailabilityUseCase.isAvailable(nickname) } returns available
+        every { memberFinder.isNicknameAvailable(nickname) } returns available
 
         mockMvc.perform(
             get("/api/members/nickname")
@@ -62,7 +62,7 @@ class MemberControllerTests {
             .andExpect(jsonPath("$.success").value(true))
             .andExpect(jsonPath("$.data.available").value(available))
 
-        verify(exactly = 1) { checkNicknameAvailabilityUseCase.isAvailable(nickname) }
+        verify(exactly = 1) { memberFinder.isNicknameAvailable(nickname) }
     }
 
     @ParameterizedTest
@@ -78,13 +78,13 @@ class MemberControllerTests {
             .andExpect(jsonPath("$.data.message").value(MemberErrorCode.INVALID_NICKNAME.message))
             .andExpect(jsonPath("$.data.errors").isEmpty())
 
-        verify(exactly = 0) { checkNicknameAvailabilityUseCase.isAvailable(any()) }
+        verify(exactly = 0) { memberFinder.isNicknameAvailable(any()) }
     }
 
     @Test
     fun `인증된 회원의 닉네임을 변경한다`() {
-        val command = ChangeNicknameCommand(memberId = 42L, nickname = "라이츄")
-        justRun { changeNicknameUseCase.change(command) }
+        val command = UpdateNicknameCommand(memberId = 42L, nickname = "라이츄")
+        justRun { memberRegister.updateNickname(command) }
 
         mockMvc.perform(
             put("/api/members/me/nickname")
@@ -94,7 +94,7 @@ class MemberControllerTests {
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.success").value(true))
 
-        verify(exactly = 1) { changeNicknameUseCase.change(command) }
+        verify(exactly = 1) { memberRegister.updateNickname(command) }
     }
 
     @ParameterizedTest
@@ -111,6 +111,6 @@ class MemberControllerTests {
             .andExpect(jsonPath("$.data.message").value(MemberErrorCode.INVALID_NICKNAME.message))
             .andExpect(jsonPath("$.data.errors").isEmpty())
 
-        verify(exactly = 0) { changeNicknameUseCase.change(any()) }
+        verify(exactly = 0) { memberRegister.updateNickname(any()) }
     }
 }

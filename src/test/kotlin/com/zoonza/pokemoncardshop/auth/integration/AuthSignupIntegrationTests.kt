@@ -5,11 +5,10 @@ import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalIdentityJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
@@ -55,10 +54,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
 
     @Test
     fun `검증된 연동 계정으로 가입하고 인증 상태를 생성한다`() {
-        val verifiedIdentity = VerifiedExternalIdentity(
-            provider = IdentityProvider.GOOGLE,
-            subject = "google-subject",
-        )
+        val verifiedIdentity = verifiedExternalIdentityFixture()
         val identityTicket = identityTicketStore.issue(
             verifiedIdentity,
             Duration.ofMinutes(10),

@@ -1,8 +1,9 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence
 
 import com.zoonza.pokemoncardshop.MySqlTestcontainersConfiguration
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.test.fake.TEST_AUTHENTICATED_AT
+import com.zoonza.pokemoncardshop.auth.test.fake.externalIdentityFixture
 import io.kotest.matchers.longs.shouldBeGreaterThan
 import io.kotest.matchers.shouldBe
 import jakarta.persistence.EntityManager
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
-import java.time.Instant
 
 @Import(MySqlTestcontainersConfiguration::class)
 @ActiveProfiles("test")
@@ -23,15 +23,7 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
 
     @Test
     fun `연동 계정을 저장하고 모든 속성을 조회한다`() {
-        val createdAt = Instant.parse("2026-08-02T03:00:00Z")
-        val saved = repository.saveAndFlush(
-            ExternalIdentity.register(
-                provider = IdentityProvider.GOOGLE,
-                subject = "google-subject",
-                memberId = 42L,
-                createdAt = createdAt,
-            ),
-        )
+        val saved = repository.saveAndFlush(externalIdentityFixture())
         val identityId = saved.id
 
         entityManager.clear()
@@ -42,19 +34,12 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
         found.provider shouldBe IdentityProvider.GOOGLE
         found.subject shouldBe "google-subject"
         found.memberId shouldBe 42L
-        found.createdAt shouldBe createdAt
+        found.createdAt shouldBe TEST_AUTHENTICATED_AT.minusSeconds(60)
     }
 
     @Test
     fun `같은 제공자와 식별자의 연동 계정이 있을 때만 존재한다고 응답한다`() {
-        repository.saveAndFlush(
-            ExternalIdentity.register(
-                provider = IdentityProvider.GOOGLE,
-                subject = "google-subject",
-                memberId = 42L,
-                createdAt = Instant.parse("2026-08-02T03:00:00Z"),
-            ),
-        )
+        repository.saveAndFlush(externalIdentityFixture())
 
         repository.existsByProviderAndSubject(
             IdentityProvider.GOOGLE,
@@ -68,14 +53,7 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
 
     @Test
     fun `제공자와 식별자로 연동 계정을 조회한다`() {
-        val saved = repository.saveAndFlush(
-            ExternalIdentity.register(
-                provider = IdentityProvider.GOOGLE,
-                subject = "google-subject",
-                memberId = 42L,
-                createdAt = Instant.parse("2026-08-02T03:00:00Z"),
-            ),
-        )
+        val saved = repository.saveAndFlush(externalIdentityFixture())
 
         entityManager.clear()
 

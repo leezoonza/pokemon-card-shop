@@ -13,5 +13,5 @@ interface MemberRegistrationApi {
      * @return 등록된 회원의 식별자와 역할
      * @throws DomainException 닉네임이 유효하지 않거나 이미 사용 중인 경우
      */
-    fun register(command: RegisterMemberCommand): RegisterMemberResult
+    fun register(command: MemberRegisterCommand): MemberRegisterResult
 }

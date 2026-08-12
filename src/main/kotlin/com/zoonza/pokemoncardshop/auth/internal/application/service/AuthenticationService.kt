@@ -1,11 +1,9 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.service
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.AuthenticationResult
+import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedRefreshToken
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LoginUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.LogoutUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.ReissueAuthTokensUseCase
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.SignupUseCase
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.Authenticator
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
@@ -20,19 +18,15 @@ import java.time.Clock
 import java.time.Instant
 
 @Service
-class AuthService(
+class AuthenticationService(
     private val clock: Clock,
     private val authTokenIssuer: AuthTokenIssuer,
     private val refreshTokenStore: RefreshTokenStore,
     private val identityTicketStore: IdentityTicketStore,
     private val memberRegistrationApi: MemberRegistrationApi,
-    private val memberLoginApi: MemberLoginApi,
-    private val memberRoleQueryApi: MemberRoleQueryApi,
+    private val memberAuthenticationApi: MemberAuthenticationApi,
     private val externalIdentityRepository: ExternalIdentityRepository
-) : SignupUseCase,
-    LoginUseCase,
-    LogoutUseCase,
-    ReissueAuthTokensUseCase {
+) : Authenticator {
 
     @Transactional
     override fun signup(command: SignupCommand): AuthenticationResult {
@@ -40,9 +34,8 @@ class AuthService(
 
         val createdAt = Instant.now(clock)
 
-        val registerMemberCommand = RegisterMemberCommand(command.nickname, createdAt)
-
-        val result = memberRegistrationApi.register(registerMemberCommand)
+        val memberRegisterCommand = MemberRegisterCommand(command.nickname, createdAt)
+        val result = memberRegistrationApi.register(memberRegisterCommand)
 
         val externalIdentity = ExternalIdentity.register(
             provider = verifiedIdentity.provider,
@@ -55,41 +48,27 @@ class AuthService(
 
         val authTokens = authTokenIssuer.issue(result.memberId, result.role)
 
-        refreshTokenStore.save(
-            memberId = result.memberId,
-            refreshToken = authTokens.refreshToken.value,
-            ttl = authTokens.refreshToken.ttl
-        )
+        saveRefreshToken(result.memberId, authTokens.refreshToken)
 
         return AuthenticationResult(authTokens, result.role)
     }
 
     @Transactional
-    override fun login(identityTicket: String): AuthenticationResult {
+    override fun authenticate(identityTicket: String): AuthenticationResult {
         val verifiedIdentity = identityTicketStore.consume(identityTicket)
 
         val loggedInAt = Instant.now(clock)
 
         val externalIdentity = externalIdentityRepository
             .findByProviderAndSubject(verifiedIdentity.provider, verifiedIdentity.subject)
-            ?: throw DomainException(AuthErrorCode.EXTERNAL_IDENTITY_NOT_FOUND)
+            ?: throw DomainException(AuthErrorCode.AUTHENTICATION_FAILED)
 
         val command = MemberLoginCommand(externalIdentity.memberId, loggedInAt)
+        val result = loginMember(command)
 
-        val result = memberLoginApi.recordLogin(command)
-            ?: throw IllegalStateException("연결된 회원 정보가 존재하지 않습니다.")
+        val authTokens = authTokenIssuer.issue(externalIdentity.memberId, result.role)
 
-
-        val authTokens = authTokenIssuer.issue(
-            externalIdentity.memberId,
-            result.role
-        )
-
-        refreshTokenStore.save(
-            memberId = externalIdentity.memberId,
-            refreshToken = authTokens.refreshToken.value,
-            ttl = authTokens.refreshToken.ttl
-        )
+        saveRefreshToken(externalIdentity.memberId, authTokens.refreshToken)
 
         return AuthenticationResult(authTokens, result.role)
     }
@@ -101,16 +80,11 @@ class AuthService(
 
         val memberId = refreshTokenStore.consume(token)
 
-        val result = memberRoleQueryApi.findByMemberId(memberId)
-            ?: throw DomainException(AuthErrorCode.INVALID_REFRESH_TOKEN)
+        val result = getMemberRole(memberId)
 
         val authTokens = authTokenIssuer.issue(memberId, result.role)
 
-        refreshTokenStore.save(
-            memberId = memberId,
-            refreshToken = authTokens.refreshToken.value,
-            ttl = authTokens.refreshToken.ttl,
-        )
+        saveRefreshToken(memberId, authTokens.refreshToken)
 
         return AuthenticationResult(authTokens, result.role)
     }
@@ -119,5 +93,32 @@ class AuthService(
         if (refreshToken.isNullOrBlank()) return
 
         refreshTokenStore.delete(refreshToken)
+    }
+
+    private fun loginMember(command: MemberLoginCommand): MemberLoginResult {
+        return try {
+            memberAuthenticationApi.login(command)
+        } catch (exception: DomainException) {
+            throw DomainException(AuthErrorCode.AUTHENTICATION_FAILED, exception)
+        }
+    }
+
+    private fun getMemberRole(memberId: Long): MemberRoleResult {
+        return try {
+            memberAuthenticationApi.getMemberRole(memberId)
+        } catch (exception: DomainException) {
+            throw DomainException(AuthErrorCode.INVALID_REFRESH_TOKEN, exception)
+        }
+    }
+
+    private fun saveRefreshToken(
+        memberId: Long,
+        issuedRefreshToken: IssuedRefreshToken,
+    ) {
+        refreshTokenStore.save(
+            memberId = memberId,
+            refreshToken = issuedRefreshToken.value,
+            ttl = issuedRefreshToken.ttl
+        )
     }
 }

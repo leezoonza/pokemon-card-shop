@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.member.internal.application.dto
 
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
 
-data class ChangeNicknameCommand(
+data class UpdateNicknameCommand(
     val memberId: Long,
     val nickname: Nickname
 ) {

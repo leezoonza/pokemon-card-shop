@@ -5,17 +5,15 @@ import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalIdentityJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.test.fake.externalIdentityFixture
+import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
-import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
-import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
+import com.zoonza.pokemoncardshop.member.test.fake.memberFixture
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -58,22 +56,12 @@ class AuthLoginIntegrationTests @Autowired constructor(
     @Test
     fun `가입한 연동 계정으로 로그인하고 인증 상태를 갱신한다`() {
         val registeredAt = Instant.parse("2026-08-01T03:00:00Z")
-        val member = memberRepository.saveAndFlush(
-            Member.register(
-                nickname = Nickname("피카츄"),
-                role = MemberRole.MEMBER,
-                createdAt = registeredAt,
-            ),
-        )
-        val verifiedIdentity = VerifiedExternalIdentity(
-            provider = IdentityProvider.GOOGLE,
-            subject = "google-subject",
-        )
+        val member = memberRepository.saveAndFlush(memberFixture(createdAt = registeredAt))
+        val verifiedIdentity = verifiedExternalIdentityFixture()
         externalIdentityRepository.saveAndFlush(
-            ExternalIdentity.register(
-                provider = verifiedIdentity.provider,
-                subject = verifiedIdentity.subject,
+            externalIdentityFixture(
                 memberId = member.id,
+                identity = verifiedIdentity,
                 createdAt = registeredAt,
             ),
         )
@@ -136,17 +124,15 @@ class AuthLoginIntegrationTests @Autowired constructor(
     }
 
     @Test
-    fun `연동 계정에 연결된 회원이 없으면 회원 오류를 노출하지 않는다`() {
+    fun `연동 계정에 연결된 회원이 없으면 인증 실패를 응답한다`() {
         val registeredAt = Instant.parse("2026-08-01T03:00:00Z")
-        val verifiedIdentity = VerifiedExternalIdentity(
-            provider = IdentityProvider.GOOGLE,
+        val verifiedIdentity = verifiedExternalIdentityFixture().copy(
             subject = "orphan-google-subject",
         )
         externalIdentityRepository.saveAndFlush(
-            ExternalIdentity.register(
-                provider = verifiedIdentity.provider,
-                subject = verifiedIdentity.subject,
+            externalIdentityFixture(
                 memberId = 999L,
+                identity = verifiedIdentity,
                 createdAt = registeredAt,
             ),
         )
@@ -165,10 +151,12 @@ class AuthLoginIntegrationTests @Autowired constructor(
             )
         }
             .andExpect {
-                status { isInternalServerError() }
+                status { isUnauthorized() }
                 jsonPath("$.success") { value(false) }
-                jsonPath("$.data.code") { value("COMMON-001") }
-                jsonPath("$.data.message") { value("서버 내부 오류가 발생했습니다.") }
+                jsonPath("$.data.code") { value(AuthErrorCode.AUTHENTICATION_FAILED.code) }
+                jsonPath("$.data.message") {
+                    value(AuthErrorCode.AUTHENTICATION_FAILED.message)
+                }
             }
     }
 }

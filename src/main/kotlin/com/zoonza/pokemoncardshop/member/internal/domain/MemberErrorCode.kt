@@ -25,4 +25,10 @@ enum class MemberErrorCode(
         "회원 정보를 찾을 수 없습니다.",
         404,
     ),
+
+    DEACTIVATED_MEMBER(
+        "MEMBER-004",
+        "비활성화된 회원입니다.",
+        403,
+    ),
 }
