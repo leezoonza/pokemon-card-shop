@@ -14,7 +14,7 @@ data class Attack(
     @Column(nullable = false, columnDefinition = "json")
     val cost: List<String>,
 
-    @Column
+    @Column(columnDefinition = "TEXT")
     val effect: String?,
 
     @Column

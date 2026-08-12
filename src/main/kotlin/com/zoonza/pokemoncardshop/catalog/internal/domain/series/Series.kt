@@ -42,7 +42,7 @@ class Series private constructor(
             sourceId: String,
             name: Name,
             releaseDate: LocalDate,
-            registeredAt: Instant,
+            registeredAt: Instant
         ): Series {
             if (name.en.isBlank()) {
                 throw DomainException(SeriesErrorCode.ENGLISH_NAME_REQUIRED)
@@ -57,7 +57,7 @@ class Series private constructor(
                 name = name,
                 releaseDate = releaseDate,
                 registeredAt = registeredAt,
-                updatedAt = registeredAt
+                updatedAt = registeredAt,
             )
         }
     }

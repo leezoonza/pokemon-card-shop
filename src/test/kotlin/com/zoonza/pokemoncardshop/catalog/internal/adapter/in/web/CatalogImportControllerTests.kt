@@ -1,31 +1,29 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.`in`.web
 
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CatalogImportCommand
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CatalogImportResult
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionCandidateSummary
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesCandidateSummary
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogCandidateFinder
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.ImportCatalogUseCase
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogImporter
+import com.zoonza.pokemoncardshop.catalog.test.fake.expansionImportCommandFixture
+import com.zoonza.pokemoncardshop.catalog.test.fake.expansionImportSelectionCommandFixture
+import com.zoonza.pokemoncardshop.catalog.test.fake.seriesImportCommandFixture
+import io.mockk.*
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.get
 import org.springframework.test.web.servlet.post
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
-import java.time.LocalDate
 
 class CatalogImportControllerTests {
 
     private val catalogCandidateFinder = mockk<CatalogCandidateFinder>()
-    private val importCatalog = mockk<ImportCatalogUseCase>()
+    private val catalogImporter = mockk<CatalogImporter>()
     private val mockMvc: MockMvc = MockMvcBuilders
         .standaloneSetup(
             CatalogImportController(
                 catalogCandidateFinder = catalogCandidateFinder,
-                importCatalogUseCase = importCatalog,
+                catalogImporter = catalogImporter,
             ),
         )
         .build()
@@ -54,6 +52,28 @@ class CatalogImportControllerTests {
     }
 
     @Test
+    fun `시리즈 등록 요청을 전달한다`() {
+        val command = seriesImportCommandFixture()
+        every { catalogImporter.importSeries(command) } just Runs
+
+        mockMvc.post("/api/admin/catalog/imports/series") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """
+                {
+                  "seriesSourceId": "sv",
+                  "seriesNameKo": "스칼렛&바이올렛",
+                  "seriesReleaseDate": "2023-03-31"
+                }
+            """.trimIndent()
+        }.andExpect {
+            status { isCreated() }
+            jsonPath("$.success") { value(true) }
+        }
+
+        verify(exactly = 1) { catalogImporter.importSeries(command) }
+    }
+
+    @Test
     fun `선택한 시리즈의 확장팩 등록 후보를 응답한다`() {
         every { catalogCandidateFinder.findExpansions("sv") } returns listOf(
             ExpansionCandidateSummary(
@@ -77,35 +97,51 @@ class CatalogImportControllerTests {
     }
 
     @Test
-    fun `시리즈와 선택한 확장팩을 등록한다`() {
-        val command = CatalogImportCommand(
-            seriesSourceId = "sv",
-            seriesReleaseDate = LocalDate.of(2023, 3, 31),
-            expansionSourceIds = listOf("sv01", "sv02"),
+    fun `선택한 확장팩과 카드 등록 요청을 전달한다`() {
+        val command = expansionImportCommandFixture(
+            expansions = listOf(
+                expansionImportSelectionCommandFixture(),
+                expansionImportSelectionCommandFixture(
+                    expansionSourceId = "sv02",
+                    expansionNameKo = "트리플렛비트",
+                ),
+            ),
         )
-        every { importCatalog.importCatalog(command) } returns CatalogImportResult(
-            seriesId = 1L,
-            expansionCount = 2,
-            cardCount = 500,
-        )
+        every { catalogImporter.importExpansionAndCard(command) } just Runs
 
-        mockMvc.post("/api/admin/catalog/imports") {
+        mockMvc.post("/api/admin/catalog/imports/series/sv/expansions") {
             contentType = MediaType.APPLICATION_JSON
             content = """
                 {
-                  "seriesSourceId": "sv",
-                  "seriesReleaseDate": "2023-03-31",
-                  "expansionSourceIds": ["sv01", "sv02"]
+                  "expansions": [
+                    {
+                      "expansionSourceId": "sv01",
+                      "expansionNameKo": "스칼렛&바이올렛"
+                    },
+                    {
+                      "expansionSourceId": "sv02",
+                      "expansionNameKo": "트리플렛비트"
+                    }
+                  ]
                 }
             """.trimIndent()
         }.andExpect {
             status { isCreated() }
             jsonPath("$.success") { value(true) }
-            jsonPath("$.data.seriesId") { value(1) }
-            jsonPath("$.data.expansionCount") { value(2) }
-            jsonPath("$.data.cardCount") { value(500) }
         }
 
-        verify(exactly = 1) { importCatalog.importCatalog(command) }
+        verify(exactly = 1) { catalogImporter.importExpansionAndCard(command) }
+    }
+
+    @Test
+    fun `확장팩을 선택하지 않으면 요청을 거절한다`() {
+        mockMvc.post("/api/admin/catalog/imports/series/sv/expansions") {
+            contentType = MediaType.APPLICATION_JSON
+            content = """{"expansions": []}"""
+        }.andExpect {
+            status { isBadRequest() }
+        }
+
+        verify(exactly = 0) { catalogImporter.importExpansionAndCard(any()) }
     }
 }

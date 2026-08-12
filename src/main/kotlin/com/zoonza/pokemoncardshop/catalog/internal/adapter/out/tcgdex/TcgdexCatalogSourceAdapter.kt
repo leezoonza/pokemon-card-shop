@@ -44,14 +44,14 @@ class TcgdexCatalogSourceAdapter(
                 ?: sourceNotFound()
         }
 
-    override fun getExpansion(sourceId: String): SourceExpansion =
+    override fun fetchExpansion(sourceId: String): SourceExpansion =
         fetchSource {
             client.fetchSet(sourceId)
                 ?.toSourceExpansion()
                 ?: sourceNotFound()
         }
 
-    override fun getCard(sourceId: String): SourceCard =
+    override fun fetchCard(sourceId: String): SourceCard =
         fetchSource {
             client.fetchCard(sourceId)
                 ?.toSourceCard()
@@ -103,6 +103,44 @@ class TcgdexCatalogSourceAdapter(
                 reverse = sourceVariants?.reverse ?: false,
                 wPromo = sourceVariants?.wPromo ?: false,
             ),
+            abilities = abilities.orEmpty().map {
+                SourceAbility(
+                    type = it.type,
+                    name = it.name,
+                    effect = it.effect,
+                )
+            },
+            dexIds = dexId.orEmpty(),
+            hp = hp,
+            types = types.orEmpty(),
+            evolveFrom = evolveFrom,
+            description = description,
+            stage = stage,
+            suffix = suffix,
+            attacks = attacks.orEmpty().map { attack ->
+                SourceAttack(
+                    name = attack.name,
+                    cost = attack.cost.orEmpty(),
+                    effect = attack.effect,
+                    damage = attack.damage,
+                )
+            },
+            weaknesses = weaknesses.orEmpty().map { weakness ->
+                SourceWeakRes(
+                    type = weakness.type,
+                    value = weakness.value,
+                )
+            },
+            resistances = resistances.orEmpty().map { resistance ->
+                SourceWeakRes(
+                    type = resistance.type,
+                    value = resistance.value,
+                )
+            },
+            retreat = retreat,
+            effect = effect,
+            trainerType = trainerType,
+            energyType = energyType,
         )
     }
 

@@ -13,4 +13,9 @@ class TrainerDetail private constructor(
 
     @Column(nullable = false)
     val type: String
-)
+) {
+    companion object {
+        fun register(info: TrainerDetailRegisterInfo): TrainerDetail =
+            TrainerDetail(effect = info.effect, type = info.type)
+    }
+}

@@ -13,4 +13,9 @@ class EnergyDetail private constructor(
 
     @Column(nullable = false)
     val type: String
-)
+) {
+    companion object {
+        fun register(info: EnergyDetailRegisterInfo): EnergyDetail =
+            EnergyDetail(effect = info.effect, type = info.type)
+    }
+}

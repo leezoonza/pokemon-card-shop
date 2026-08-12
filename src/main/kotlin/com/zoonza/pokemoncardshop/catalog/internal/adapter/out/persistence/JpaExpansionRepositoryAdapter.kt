@@ -19,6 +19,6 @@ class JpaExpansionRepositoryAdapter(
         try {
             repository.saveAndFlush(expansion)
         } catch (exception: DataIntegrityViolationException) {
-            throw DomainException(CatalogImportErrorCode.DUPLICATE_SOURCE_DATA, exception)
+            throw DomainException(CatalogImportErrorCode.SOURCE_DATA_ALREADY_REGISTERED, exception)
         }
 }

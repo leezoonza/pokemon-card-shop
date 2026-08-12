@@ -2,17 +2,9 @@ package com.zoonza.pokemoncardshop.catalog.internal.domain.card
 
 import jakarta.persistence.*
 
-/**
- * nullable:
- * - abilities
- * - attacks
- * - weaknesses
- * - resistances
- * - retreat
- */
 
 @Entity
-class PokemonDetail(
+class PokemonDetail private constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
@@ -69,4 +61,21 @@ class PokemonDetail(
 
     @Column
     val retreat: Int?
-)
+) {
+    companion object {
+        fun register(info: PokemonDetailRegisterInfo): PokemonDetail =
+            PokemonDetail(
+                dexIds = info.dexIds.toMutableSet(),
+                hp = info.hp,
+                types = info.types.toMutableSet(),
+                evolveFrom = info.evolveFrom,
+                description = info.description,
+                stage = info.stage,
+                suffix = info.suffix,
+                attacks = info.attacks.toMutableList(),
+                weaknesses = info.weaknesses.toMutableList(),
+                resistances = info.resistances.toMutableList(),
+                retreat = info.retreat,
+            )
+    }
+}

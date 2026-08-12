@@ -11,6 +11,6 @@ data class Ability(
     @Column(nullable = false)
     val name: String,
 
-    @Column(nullable = false)
+    @Column(nullable = false, columnDefinition = "TEXT")
     val effect: String
 )

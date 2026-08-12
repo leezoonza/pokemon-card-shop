@@ -1,6 +1,7 @@
 package com.zoonza.pokemoncardshop.catalog.internal.domain.card
 
 import com.zoonza.pokemoncardshop.catalog.internal.domain.shared.Name
+import com.zoonza.pokemoncardshop.common.error.DomainException
 import jakarta.persistence.*
 import java.time.Instant
 
@@ -82,36 +83,47 @@ class Card private constructor(
     @Column(nullable = false)
     val updatedAt: Instant,
 ) {
-//    companion object {
-//        fun register(
-//            expansionId: Long,
-//            sourceId: String,
-//            category: CardCategory,
-//            localId: String,
-//            name: Name,
-//            imageUrl: String,
-//            illustrator: String?,
-//            rarity: CardRarity,
-//            variants: CardVariants,
-//            registeredAt: Instant,
-//        ): Card {
-//            if (name.en.isBlank()) {
-//                throw DomainException(CardErrorCode.ENGLISH_NAME_REQUIRED)
-//            }
-//
-//            return Card(
-//                expansionId = expansionId,
-//                sourceId = sourceId,
-//                category = category,
-//                localId = localId,
-//                name = name,
-//                imageUrl = imageUrl,
-//                illustrator = illustrator ?: "Unknown",
-//                rarity = rarity,
-//                variants = variants,
-//                registeredAt = registeredAt,
-//                updatedAt = registeredAt
-//            )
-//        }
-//    }
+    companion object {
+        fun register(info: CardRegisterInfo): Card {
+            if (info.name.en.isBlank()) {
+                throw DomainException(CardErrorCode.ENGLISH_NAME_REQUIRED)
+            }
+
+            return Card(
+                expansionId = info.expansionId,
+                sourceId = info.sourceId,
+                category = info.category,
+                localId = info.localId,
+                name = info.name,
+                imageUrl = info.imageUrl,
+                illustrator = info.illustrator ?: "Unknown",
+                rarity = info.rarity,
+                variants = info.variants,
+                abilities = info.abilities.toMutableList(),
+                pokemonDetail = createPokemonDetail(info),
+                trainerDetail = createTrainerDetail(info),
+                energyDetail = createEnergyDetail(info),
+                registeredAt = info.registeredAt,
+                updatedAt = info.registeredAt,
+            )
+        }
+
+        private fun createPokemonDetail(info: CardRegisterInfo): PokemonDetail? {
+            if (info.category != CardCategory.POKEMON) return null
+
+            return info.pokemonDetail?.let(PokemonDetail::register)
+        }
+
+        private fun createTrainerDetail(info: CardRegisterInfo): TrainerDetail? {
+            if (info.category != CardCategory.TRAINER) return null
+
+            return info.trainerDetail?.let(TrainerDetail::register)
+        }
+
+        private fun createEnergyDetail(info: CardRegisterInfo): EnergyDetail? {
+            if (info.category != CardCategory.ENERGY) return null
+
+            return info.energyDetail?.let(EnergyDetail::register)
+        }
+    }
 }

@@ -10,7 +10,7 @@ interface CatalogSourceFetcher {
 
     fun fetchSeries(sourceId: String): SourceSeries
 
-    fun getExpansion(sourceId: String): SourceExpansion
+    fun fetchExpansion(sourceId: String): SourceExpansion
 
-    fun getCard(sourceId: String): SourceCard
+    fun fetchCard(sourceId: String): SourceCard
 }

@@ -12,6 +12,10 @@ class JpaSeriesRepositoryAdapter(
     private val repository: SeriesJpaRepository,
 ) : SeriesRepository {
 
+    override fun existsBySourceId(sourceId: String): Boolean =
+        repository.existsBySourceId(sourceId)
+
+
     override fun findBySourceId(sourceId: String): Series? =
         repository.findBySourceId(sourceId)
 
@@ -19,6 +23,6 @@ class JpaSeriesRepositoryAdapter(
         try {
             repository.saveAndFlush(series)
         } catch (exception: DataIntegrityViolationException) {
-            throw DomainException(CatalogImportErrorCode.DUPLICATE_SOURCE_DATA, exception)
+            throw DomainException(CatalogImportErrorCode.SOURCE_DATA_ALREADY_REGISTERED, exception)
         }
 }

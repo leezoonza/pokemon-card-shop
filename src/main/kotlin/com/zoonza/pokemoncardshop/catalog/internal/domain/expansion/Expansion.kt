@@ -47,32 +47,24 @@ class Expansion private constructor(
     val updatedAt: Instant,
 ) {
     companion object {
-        fun register(
-            seriesId: Long,
-            sourceId: String,
-            name: Name,
-            count: CardCount,
-            image: ExpansionImage,
-            releaseDate: LocalDate,
-            registeredAt: Instant,
-        ): Expansion {
-            if (name.en.isBlank()) {
+        fun register(info: ExpansionRegisterInfo): Expansion {
+            if (info.name.en.isBlank()) {
                 throw DomainException(ExpansionErrorCode.ENGLISH_NAME_REQUIRED)
             }
 
-            if (name.ko.isNullOrBlank()) {
+            if (info.name.ko.isNullOrBlank()) {
                 throw DomainException(ExpansionErrorCode.KOREAN_NAME_REQUIRED)
             }
 
             return Expansion(
-                seriesId = seriesId,
-                sourceId = sourceId,
-                name = name,
-                count = count,
-                image = image,
-                releaseDate = releaseDate,
-                registeredAt = registeredAt,
-                updatedAt = registeredAt
+                seriesId = info.seriesId,
+                sourceId = info.sourceId,
+                name = info.name,
+                count = info.count,
+                image = info.image,
+                releaseDate = info.releaseDate,
+                registeredAt = info.registeredAt,
+                updatedAt = info.registeredAt,
             )
         }
     }

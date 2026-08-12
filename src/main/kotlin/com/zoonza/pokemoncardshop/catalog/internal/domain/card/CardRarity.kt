@@ -1,5 +1,7 @@
 package com.zoonza.pokemoncardshop.catalog.internal.domain.card
 
+import com.zoonza.pokemoncardshop.common.error.DomainException
+
 enum class CardRarity(val value: String) {
     ACE_SPEC_RARE("ACE SPEC Rare"),
     AMAZING_RARE("Amazing Rare"),
@@ -42,4 +44,10 @@ enum class CardRarity(val value: String) {
     ULTRA_RARE("Ultra Rare"),
     UNCOMMON("Uncommon"),
     ;
+
+    companion object {
+        fun from(value: String): CardRarity =
+            CardRarity.entries.find { it.value == value }
+                ?: throw DomainException(CardErrorCode.NOT_SUPPORTED_RARITY)
+    }
 }

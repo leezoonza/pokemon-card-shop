@@ -35,6 +35,7 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("io.github.oshai:kotlin-logging:8.0.4")
+    implementation("org.apache.commons:commons-csv:1.14.1")
     implementation("tools.jackson.module:jackson-module-kotlin")
 
     implementation("org.springframework.modulith:spring-modulith-starter-core")
