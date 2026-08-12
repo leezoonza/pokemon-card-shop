@@ -5,7 +5,12 @@ import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.common.error.ValidationError
 import io.kotest.matchers.collections.shouldContainExactly
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.extension.ExtendWith
+import org.springframework.boot.test.system.CapturedOutput
+import org.springframework.boot.test.system.OutputCaptureExtension
 import org.springframework.core.MethodParameter
 import org.springframework.http.HttpStatus
 import org.springframework.validation.BeanPropertyBindingResult
@@ -27,6 +32,20 @@ class GlobalExceptionHandlerTests {
         response.body?.success shouldBe false
         response.body?.data?.code shouldBe CommonErrorCode.VALIDATION_FAILED.code
         response.body?.data?.message shouldBe CommonErrorCode.VALIDATION_FAILED.message
+    }
+
+    @Test
+    @ExtendWith(OutputCaptureExtension::class)
+    fun `원인이 있는 도메인 예외는 원인을 경고로 기록한다`(output: CapturedOutput) {
+        val cause = IllegalStateException("translated-cause")
+
+        handler.handleDomainException(
+            DomainException(CommonErrorCode.VALIDATION_FAILED, cause),
+        )
+
+        output.toString() shouldContain "WARN"
+        output.toString() shouldContain "translated-cause"
+        output.toString() shouldNotContain "IllegalStateException"
     }
 
     @Test
