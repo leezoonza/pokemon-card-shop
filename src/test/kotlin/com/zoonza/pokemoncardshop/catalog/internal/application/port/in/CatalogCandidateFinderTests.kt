@@ -4,7 +4,6 @@ import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogS
 import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogImportQueryService
 import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
 import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
-import com.zoonza.pokemoncardshop.catalog.test.fake.seriesFixture
 import com.zoonza.pokemoncardshop.catalog.test.fake.sourceExpansionSummaryFixture
 import com.zoonza.pokemoncardshop.catalog.test.fake.sourceSeriesFixture
 import com.zoonza.pokemoncardshop.catalog.test.fake.sourceSeriesSummaryFixture
@@ -33,7 +32,7 @@ class CatalogCandidateFinderTests {
             sourceSeriesSummaryFixture(sourceId = "none", name = "No Logo", logoUrl = null),
             sourceSeriesSummaryFixture(sourceId = "blank", name = "Blank Logo", logoUrl = ""),
         )
-        every { seriesRepository.findBySourceId("sv") } returns null
+        every { seriesRepository.existsBySourceId("sv") } returns false
 
         val result = catalogCandidateFinder.findSeries()
 
@@ -41,10 +40,10 @@ class CatalogCandidateFinderTests {
         result.single().logoUrl shouldBe "https://image/sv.png"
         result.single().registered shouldBe false
 
-        verify(exactly = 1) { seriesRepository.findBySourceId("sv") }
+        verify(exactly = 1) { seriesRepository.existsBySourceId("sv") }
         verify(exactly = 0) {
-            seriesRepository.findBySourceId("none")
-            seriesRepository.findBySourceId("blank")
+            seriesRepository.existsBySourceId("none")
+            seriesRepository.existsBySourceId("blank")
         }
     }
 
@@ -53,7 +52,7 @@ class CatalogCandidateFinderTests {
         every { catalogSourceFetcher.fetchSeriesSummaries() } returns listOf(
             sourceSeriesSummaryFixture(),
         )
-        every { seriesRepository.findBySourceId("sv") } returns seriesFixture()
+        every { seriesRepository.existsBySourceId("sv") } returns true
 
         val result = catalogCandidateFinder.findSeries()
 

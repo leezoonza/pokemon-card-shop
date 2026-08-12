@@ -60,9 +60,9 @@ class CatalogImportCommandService(
             val sourceExpansion = catalogSourceFetcher.fetchExpansion(selectedExpansion.expansionSourceId)
 
             val registeredExpansionId = registerExpansion(
-                series.id,
-                sourceExpansion,
-                selectedExpansion
+                seriesId = series.id,
+                sourceExpansion = sourceExpansion,
+                selectedExpansion = selectedExpansion
             )
 
             val cards = sourceExpansion.cardSourceIds.map { cardSourceId ->

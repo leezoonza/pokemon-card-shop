@@ -22,7 +22,7 @@ class CatalogImportQueryService(
                     ?.takeIf(String::isNotBlank)
                     ?: return@mapNotNull null
 
-                val registered = seriesRepository.findBySourceId(series.sourceId) != null
+                val registered = seriesRepository.existsBySourceId(series.sourceId)
 
                 SeriesCandidateSummary(
                     sourceId = series.sourceId,
