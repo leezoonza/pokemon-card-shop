@@ -16,18 +16,24 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import org.springframework.test.web.servlet.setup.MockMvcBuilders
+import java.time.Clock
+import java.time.Instant
+import java.time.ZoneOffset
 
 class AuthControllerTests {
 
+    private val now = Instant.parse("2026-08-13T03:00:00Z")
+    private val clock = Clock.fixed(now, ZoneOffset.UTC)
     private val authenticator = mockk<Authenticator>()
     private val refreshTokenCookieManager = mockk<RefreshTokenCookieManager>()
     private val identityTicketCookieManager = mockk<IdentityTicketCookieManager>()
     private val mockMvc: MockMvc = MockMvcBuilders
         .standaloneSetup(
             AuthController(
-                authenticator,
-                refreshTokenCookieManager,
-                identityTicketCookieManager,
+                clock = clock,
+                authenticator = authenticator,
+                refreshTokenCookieManager = refreshTokenCookieManager,
+                identityTicketCookieManager = identityTicketCookieManager,
             ),
         )
         .setControllerAdvice(GlobalExceptionHandler())
@@ -35,7 +41,7 @@ class AuthControllerTests {
 
     @Test
     fun `신원 티켓과 닉네임으로 가입하고 액세스 토큰을 응답한다`() {
-        val command = SignupCommand("피카츄", "identity-ticket")
+        val command = SignupCommand("피카츄", "identity-ticket", now)
         val tokens = issuedAuthTokensFixture()
         every { authenticator.signup(command) } returns AuthenticationResult(tokens, "MEMBER")
         every { identityTicketCookieManager.clear(any()) } just Runs
@@ -84,7 +90,7 @@ class AuthControllerTests {
     @Test
     fun `신원 티켓으로 로그인하고 액세스 토큰을 응답한다`() {
         val tokens = issuedAuthTokensFixture()
-        every { authenticator.authenticate("identity-ticket") } returns
+        every { authenticator.login("identity-ticket", now) } returns
                 AuthenticationResult(tokens, "ADMIN")
         every { identityTicketCookieManager.clear(any()) } just Runs
         every { refreshTokenCookieManager.write(any(), tokens.refreshToken) } just Runs
@@ -98,7 +104,7 @@ class AuthControllerTests {
             .andExpect(jsonPath("$.data.accessToken").value("access-token"))
             .andExpect(jsonPath("$.data.role").value("ADMIN"))
 
-        verify(exactly = 1) { authenticator.authenticate("identity-ticket") }
+        verify(exactly = 1) { authenticator.login("identity-ticket", now) }
         verify(exactly = 1) { identityTicketCookieManager.clear(any()) }
         verify(exactly = 1) {
             refreshTokenCookieManager.write(any(), tokens.refreshToken)

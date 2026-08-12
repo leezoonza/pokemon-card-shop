@@ -6,9 +6,9 @@ import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTic
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
 import com.zoonza.pokemoncardshop.auth.internal.application.service.AuthenticationService
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentityRepository
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccount
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountRepository
 import com.zoonza.pokemoncardshop.auth.test.fake.*
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.api.*
@@ -17,8 +17,6 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.mockk.*
 import org.junit.jupiter.api.Test
-import java.time.Clock
-import java.time.ZoneOffset
 
 class AuthenticatorTests {
 
@@ -27,15 +25,14 @@ class AuthenticatorTests {
     private val identityTicketStore = mockk<IdentityTicketStore>()
     private val memberRegistrationApi = mockk<MemberRegistrationApi>()
     private val memberAuthenticationApi = mockk<MemberAuthenticationApi>()
-    private val externalIdentityRepository = mockk<ExternalIdentityRepository>()
+    private val externalAccountRepository = mockk<ExternalAccountRepository>()
     private val authenticator: Authenticator = AuthenticationService(
-        clock = Clock.fixed(TEST_AUTHENTICATED_AT, ZoneOffset.UTC),
         authTokenIssuer = authTokenIssuer,
         refreshTokenStore = refreshTokenStore,
         identityTicketStore = identityTicketStore,
         memberRegistrationApi = memberRegistrationApi,
         memberAuthenticationApi = memberAuthenticationApi,
-        externalIdentityRepository = externalIdentityRepository,
+        externalAccountRepository = externalAccountRepository,
     )
 
     @Test
@@ -43,12 +40,12 @@ class AuthenticatorTests {
         val command = signupCommandFixture()
         val identity = verifiedExternalIdentityFixture()
         val memberCommand = slot<MemberRegisterCommand>()
-        val externalIdentity = slot<ExternalIdentity>()
+        val externalAccount = slot<ExternalAccount>()
         val tokens = issuedAuthTokensFixture()
         every { identityTicketStore.consume(command.identityTicket) } returns identity
         every { memberRegistrationApi.register(capture(memberCommand)) } returns
                 MemberRegisterResult(memberId = 42L, role = "MEMBER")
-        every { externalIdentityRepository.save(capture(externalIdentity)) } answers { firstArg() }
+        every { externalAccountRepository.save(capture(externalAccount)) } answers { firstArg() }
         every { authTokenIssuer.issue(42L, "MEMBER") } returns tokens
         every {
             refreshTokenStore.save(42L, "refresh-token", TEST_REFRESH_TOKEN_TTL)
@@ -61,16 +58,16 @@ class AuthenticatorTests {
             nickname = "피카츄",
             createdAt = TEST_AUTHENTICATED_AT,
         )
-        with(externalIdentity.captured) {
-            provider shouldBe IdentityProvider.GOOGLE
+        with(externalAccount.captured) {
+            provider shouldBe ExternalAccountProvider.GOOGLE
             subject shouldBe "google-subject"
             memberId shouldBe 42L
-            createdAt shouldBe TEST_AUTHENTICATED_AT
+            linkedAt shouldBe TEST_AUTHENTICATED_AT
         }
         verifyOrder {
             identityTicketStore.consume("identity-ticket")
             memberRegistrationApi.register(memberCommand.captured)
-            externalIdentityRepository.save(externalIdentity.captured)
+            externalAccountRepository.save(externalAccount.captured)
             authTokenIssuer.issue(42L, "MEMBER")
             refreshTokenStore.save(42L, "refresh-token", TEST_REFRESH_TOKEN_TTL)
         }
@@ -88,7 +85,7 @@ class AuthenticatorTests {
         exception.errorCode shouldBe AuthErrorCode.INVALID_IDENTITY_TICKET
         verify(exactly = 0) {
             memberRegistrationApi.register(any())
-            externalIdentityRepository.save(any())
+            externalAccountRepository.save(any())
             authTokenIssuer.issue(any(), any())
             refreshTokenStore.save(any(), any(), any())
         }
@@ -101,7 +98,7 @@ class AuthenticatorTests {
         val tokens = issuedAuthTokensFixture()
         every { identityTicketStore.consume("identity-ticket") } returns identity
         every {
-            externalIdentityRepository.findByProviderAndSubject(identity.provider, identity.subject)
+            externalAccountRepository.findByProviderAndSubject(identity.provider, identity.subject)
         } returns externalIdentityFixture(identity = identity)
         every { memberAuthenticationApi.login(capture(memberLoginCommand)) } returns
                 MemberLoginResult("MEMBER")
@@ -110,7 +107,7 @@ class AuthenticatorTests {
             refreshTokenStore.save(42L, "refresh-token", TEST_REFRESH_TOKEN_TTL)
         } just Runs
 
-        val result = authenticator.authenticate("identity-ticket")
+        val result = authenticator.login("identity-ticket", TEST_AUTHENTICATED_AT)
 
         result shouldBe AuthenticationResult(tokens, "MEMBER")
         memberLoginCommand.captured shouldBe MemberLoginCommand(
@@ -119,8 +116,8 @@ class AuthenticatorTests {
         )
         verifyOrder {
             identityTicketStore.consume("identity-ticket")
-            externalIdentityRepository.findByProviderAndSubject(
-                IdentityProvider.GOOGLE,
+            externalAccountRepository.findByProviderAndSubject(
+                ExternalAccountProvider.GOOGLE,
                 "google-subject",
             )
             memberAuthenticationApi.login(memberLoginCommand.captured)
@@ -134,11 +131,11 @@ class AuthenticatorTests {
         val identity = verifiedExternalIdentityFixture().copy(subject = "unknown-subject")
         every { identityTicketStore.consume("identity-ticket") } returns identity
         every {
-            externalIdentityRepository.findByProviderAndSubject(identity.provider, identity.subject)
+            externalAccountRepository.findByProviderAndSubject(identity.provider, identity.subject)
         } returns null
 
         val exception = shouldThrow<DomainException> {
-            authenticator.authenticate("identity-ticket")
+            authenticator.login("identity-ticket", TEST_AUTHENTICATED_AT)
         }
 
         exception.errorCode shouldBe AuthErrorCode.AUTHENTICATION_FAILED
@@ -154,13 +151,13 @@ class AuthenticatorTests {
         val identity = verifiedExternalIdentityFixture()
         every { identityTicketStore.consume("identity-ticket") } returns identity
         every {
-            externalIdentityRepository.findByProviderAndSubject(identity.provider, identity.subject)
+            externalAccountRepository.findByProviderAndSubject(identity.provider, identity.subject)
         } returns externalIdentityFixture(identity = identity)
         every { memberAuthenticationApi.login(any()) } throws
                 DomainException(MemberErrorCode.MEMBER_NOT_FOUND)
 
         val exception = shouldThrow<DomainException> {
-            authenticator.authenticate("identity-ticket")
+            authenticator.login("identity-ticket", TEST_AUTHENTICATED_AT)
         }
 
         exception.errorCode shouldBe AuthErrorCode.AUTHENTICATION_FAILED

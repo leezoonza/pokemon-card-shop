@@ -1,8 +1,8 @@
 package com.zoonza.pokemoncardshop.auth.test.fake
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.*
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccount
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountProvider
 import java.time.Duration
 import java.time.Instant
 
@@ -12,10 +12,11 @@ val TEST_REFRESH_TOKEN_TTL: Duration = Duration.ofDays(14)
 fun signupCommandFixture(): SignupCommand = SignupCommand(
     nickname = "피카츄",
     identityTicket = "identity-ticket",
+    createdAt = TEST_AUTHENTICATED_AT,
 )
 
 fun verifiedExternalIdentityFixture(): VerifiedExternalIdentity = VerifiedExternalIdentity(
-    provider = IdentityProvider.GOOGLE,
+    provider = ExternalAccountProvider.GOOGLE,
     subject = "google-subject",
 )
 
@@ -31,9 +32,9 @@ fun externalIdentityFixture(
     memberId: Long = 42L,
     identity: VerifiedExternalIdentity = verifiedExternalIdentityFixture(),
     createdAt: Instant = TEST_AUTHENTICATED_AT.minusSeconds(60),
-): ExternalIdentity = ExternalIdentity.register(
+): ExternalAccount = ExternalAccount.register(
     provider = identity.provider,
     subject = identity.subject,
     memberId = memberId,
-    createdAt = createdAt,
+    linkedAt = createdAt,
 )

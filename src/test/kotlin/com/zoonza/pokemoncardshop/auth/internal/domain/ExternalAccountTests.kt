@@ -5,24 +5,24 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import java.time.Instant
 
-class ExternalIdentityTests {
+class ExternalAccountTests {
 
     @ParameterizedTest
-    @EnumSource(IdentityProvider::class)
-    fun `연동 계정을 가입 상태로 생성한다`(provider: IdentityProvider) {
+    @EnumSource(ExternalAccountProvider::class)
+    fun `연동 계정을 가입 상태로 생성한다`(provider: ExternalAccountProvider) {
         val createdAt = Instant.parse("2026-08-02T03:00:00Z")
 
-        val identity = ExternalIdentity.register(
+        val identity = ExternalAccount.register(
             provider = provider,
             subject = "google-subject",
             memberId = 42L,
-            createdAt = createdAt,
+            linkedAt = createdAt,
         )
 
         identity.id shouldBe 0L
         identity.provider shouldBe provider
         identity.subject shouldBe "google-subject"
         identity.memberId shouldBe 42L
-        identity.createdAt shouldBe createdAt
+        identity.linkedAt shouldBe createdAt
     }
 }

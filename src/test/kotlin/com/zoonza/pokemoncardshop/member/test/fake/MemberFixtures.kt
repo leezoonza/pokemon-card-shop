@@ -2,7 +2,6 @@ package com.zoonza.pokemoncardshop.member.test.fake
 
 import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
-import com.zoonza.pokemoncardshop.member.internal.domain.MemberStatus
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
 import java.time.Instant
 
@@ -22,7 +21,6 @@ fun persistedMemberFixture(
     id: Long = 42L,
     nickname: Nickname = Nickname("피카츄"),
     role: MemberRole = MemberRole.MEMBER,
-    status: MemberStatus = MemberStatus.ACTIVE,
     createdAt: Instant = TEST_MEMBER_CREATED_AT,
     lastLoginAt: Instant = createdAt,
 ): Member {
@@ -30,7 +28,6 @@ fun persistedMemberFixture(
         Long::class.javaPrimitiveType,
         Nickname::class.java,
         MemberRole::class.java,
-        MemberStatus::class.java,
         Instant::class.java,
         Instant::class.java,
     )
@@ -40,7 +37,6 @@ fun persistedMemberFixture(
         id,
         nickname,
         role,
-        status,
         createdAt,
         lastLoginAt,
     )

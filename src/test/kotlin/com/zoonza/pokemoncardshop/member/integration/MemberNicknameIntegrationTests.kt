@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.member.integration
 
 import com.zoonza.pokemoncardshop.TestcontainersConfiguration
-import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalIdentityJpaRepository
+import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.Member
@@ -30,7 +30,7 @@ class MemberNicknameIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
     private val authTokenIssuer: AuthTokenIssuer,
     private val memberRepository: MemberJpaRepository,
-    private val externalIdentityRepository: ExternalIdentityJpaRepository,
+    private val externalIdentityRepository: ExternalAccountJpaRepository,
 ) {
 
     @BeforeEach

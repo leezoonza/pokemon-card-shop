@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.member.internal.application.port.`in`
 
 import com.zoonza.pokemoncardshop.common.error.DomainException
-import com.zoonza.pokemoncardshop.member.internal.application.dto.UpdateNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNicknameUpdateCommand
 import com.zoonza.pokemoncardshop.member.internal.application.service.MemberCommandService
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberErrorCode
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRepository
@@ -26,7 +26,7 @@ class MemberRegisterTests {
     @Test
     fun `사용 가능한 닉네임으로 변경한다`() {
         val member = persistedMemberFixture()
-        val command = UpdateNicknameCommand(memberId = 42L, nickname = "라이츄")
+        val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
         every { memberFinder.findById(42L) } returns member
         every { memberRepository.existsByNickname(command.nickname) } returns false
 
@@ -43,7 +43,7 @@ class MemberRegisterTests {
     fun `현재 닉네임으로 변경하면 그대로 유지한다`() {
         val nickname = Nickname("피카츄")
         val member = persistedMemberFixture(nickname = nickname)
-        val command = UpdateNicknameCommand(memberId = 42L, nickname = nickname.value)
+        val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = nickname.value)
         every { memberFinder.findById(42L) } returns member
 
         memberRegister.updateNickname(command)
@@ -56,7 +56,7 @@ class MemberRegisterTests {
     fun `이미 사용 중인 닉네임으로 변경할 수 없다`() {
         val originalNickname = Nickname("피카츄")
         val member = persistedMemberFixture(nickname = originalNickname)
-        val command = UpdateNicknameCommand(memberId = 42L, nickname = "라이츄")
+        val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
         every { memberFinder.findById(42L) } returns member
         every { memberRepository.existsByNickname(command.nickname) } returns true
 
@@ -71,7 +71,7 @@ class MemberRegisterTests {
 
     @Test
     fun `존재하지 않는 회원의 닉네임을 변경할 수 없다`() {
-        val command = UpdateNicknameCommand(memberId = 42L, nickname = "라이츄")
+        val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
         every { memberFinder.findById(42L) } throws
                 DomainException(MemberErrorCode.MEMBER_NOT_FOUND)
 

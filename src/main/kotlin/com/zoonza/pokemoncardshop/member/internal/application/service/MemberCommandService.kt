@@ -4,7 +4,7 @@ import com.zoonza.pokemoncardshop.common.error.DomainException
 import com.zoonza.pokemoncardshop.member.api.MemberRegisterCommand
 import com.zoonza.pokemoncardshop.member.api.MemberRegisterResult
 import com.zoonza.pokemoncardshop.member.api.MemberRegistrationApi
-import com.zoonza.pokemoncardshop.member.internal.application.dto.UpdateNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNicknameUpdateCommand
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberRegister
 import com.zoonza.pokemoncardshop.member.internal.domain.*
@@ -36,7 +36,7 @@ class MemberCommandService(
     }
 
     @Transactional
-    override fun updateNickname(command: UpdateNicknameCommand) {
+    override fun updateNickname(command: MemberNicknameUpdateCommand) {
         val member = memberFinder.findById(command.memberId)
 
         if (member.nickname == command.nickname) return

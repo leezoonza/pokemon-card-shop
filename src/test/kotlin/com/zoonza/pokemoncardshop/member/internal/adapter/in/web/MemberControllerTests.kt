@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web
 
 import com.zoonza.pokemoncardshop.global.exception.GlobalExceptionHandler
-import com.zoonza.pokemoncardshop.member.internal.application.dto.UpdateNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNicknameUpdateCommand
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberRegister
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberErrorCode
@@ -83,7 +83,7 @@ class MemberControllerTests {
 
     @Test
     fun `인증된 회원의 닉네임을 변경한다`() {
-        val command = UpdateNicknameCommand(memberId = 42L, nickname = "라이츄")
+        val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
         justRun { memberRegister.updateNickname(command) }
 
         mockMvc.perform(

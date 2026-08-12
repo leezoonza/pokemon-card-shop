@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountProvider
 import org.springframework.security.core.GrantedAuthority
 import org.springframework.security.oauth2.core.oidc.OidcIdToken
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo
@@ -8,7 +8,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser
 
 class CustomOidcUser(
     private val delegate: OidcUser,
-    val provider: IdentityProvider,
+    val provider: ExternalAccountProvider,
     private val subject: String
 ) : OidcUser {
 

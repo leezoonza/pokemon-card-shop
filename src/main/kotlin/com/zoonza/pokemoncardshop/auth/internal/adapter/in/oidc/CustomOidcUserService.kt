@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountProvider
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserRequest
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService
@@ -25,13 +25,13 @@ class CustomOidcUserService : OidcUserService() {
         )
     }
 
-    private fun resolveProvider(userRequest: OidcUserRequest): IdentityProvider =
+    private fun resolveProvider(userRequest: OidcUserRequest): ExternalAccountProvider =
         try {
             val registrationId = userRequest
                 .clientRegistration
                 .registrationId
 
-            return IdentityProvider.from(registrationId)
+            return ExternalAccountProvider.from(registrationId)
         } catch (ex: DomainException) {
             throw OAuth2AuthenticationException(
                 OAuth2Error(

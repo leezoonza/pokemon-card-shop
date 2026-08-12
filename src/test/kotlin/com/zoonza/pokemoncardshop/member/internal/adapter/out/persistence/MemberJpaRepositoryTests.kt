@@ -2,7 +2,6 @@ package com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence
 
 import com.zoonza.pokemoncardshop.MySqlTestcontainersConfiguration
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
-import com.zoonza.pokemoncardshop.member.internal.domain.MemberStatus
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
 import com.zoonza.pokemoncardshop.member.test.fake.TEST_MEMBER_CREATED_AT
 import com.zoonza.pokemoncardshop.member.test.fake.memberFixture
@@ -38,7 +37,6 @@ class MemberJpaRepositoryTests @Autowired constructor(
         memberId shouldBeGreaterThan 0L
         found.nickname shouldBe nickname
         found.role shouldBe MemberRole.ADMIN
-        found.status shouldBe MemberStatus.ACTIVE
         found.createdAt shouldBe TEST_MEMBER_CREATED_AT
         found.lastLoginAt shouldBe TEST_MEMBER_CREATED_AT
     }

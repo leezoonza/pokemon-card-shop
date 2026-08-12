@@ -4,7 +4,7 @@ import com.jayway.jsonpath.JsonPath
 import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
-import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalIdentityJpaRepository
+import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
@@ -42,7 +42,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
     private val identityTicketStore: IdentityTicketStore,
     private val refreshTokenStore: RefreshTokenStore,
     private val memberRepository: MemberJpaRepository,
-    private val externalIdentityRepository: ExternalIdentityJpaRepository,
+    private val externalIdentityRepository: ExternalAccountJpaRepository,
     private val jwtDecoder: JwtDecoder,
 ) {
 

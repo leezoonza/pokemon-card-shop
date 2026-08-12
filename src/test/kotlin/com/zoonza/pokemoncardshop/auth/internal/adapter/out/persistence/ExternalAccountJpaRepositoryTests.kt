@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence
 
 import com.zoonza.pokemoncardshop.MySqlTestcontainersConfiguration
-import com.zoonza.pokemoncardshop.auth.internal.domain.IdentityProvider
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountProvider
 import com.zoonza.pokemoncardshop.auth.test.fake.TEST_AUTHENTICATED_AT
 import com.zoonza.pokemoncardshop.auth.test.fake.externalIdentityFixture
 import io.kotest.matchers.longs.shouldBeGreaterThan
@@ -16,8 +16,8 @@ import org.springframework.test.context.ActiveProfiles
 @Import(MySqlTestcontainersConfiguration::class)
 @ActiveProfiles("test")
 @DataJpaTest
-class ExternalIdentityJpaRepositoryTests @Autowired constructor(
-    private val repository: ExternalIdentityJpaRepository,
+class ExternalAccountJpaRepositoryTests @Autowired constructor(
+    private val repository: ExternalAccountJpaRepository,
     private val entityManager: EntityManager,
 ) {
 
@@ -31,10 +31,10 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
         val found = repository.findById(identityId).orElseThrow()
 
         identityId shouldBeGreaterThan 0L
-        found.provider shouldBe IdentityProvider.GOOGLE
+        found.provider shouldBe ExternalAccountProvider.GOOGLE
         found.subject shouldBe "google-subject"
         found.memberId shouldBe 42L
-        found.createdAt shouldBe TEST_AUTHENTICATED_AT.minusSeconds(60)
+        found.linkedAt shouldBe TEST_AUTHENTICATED_AT.minusSeconds(60)
     }
 
     @Test
@@ -42,11 +42,11 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
         repository.saveAndFlush(externalIdentityFixture())
 
         repository.existsByProviderAndSubject(
-            IdentityProvider.GOOGLE,
+            ExternalAccountProvider.GOOGLE,
             "google-subject",
         ) shouldBe true
         repository.existsByProviderAndSubject(
-            IdentityProvider.GOOGLE,
+            ExternalAccountProvider.GOOGLE,
             "different-subject",
         ) shouldBe false
     }
@@ -58,11 +58,11 @@ class ExternalIdentityJpaRepositoryTests @Autowired constructor(
         entityManager.clear()
 
         repository.findByProviderAndSubject(
-            IdentityProvider.GOOGLE,
+            ExternalAccountProvider.GOOGLE,
             "google-subject",
         )?.id shouldBe saved.id
         repository.findByProviderAndSubject(
-            IdentityProvider.GOOGLE,
+            ExternalAccountProvider.GOOGLE,
             "unknown-subject",
         ) shouldBe null
     }

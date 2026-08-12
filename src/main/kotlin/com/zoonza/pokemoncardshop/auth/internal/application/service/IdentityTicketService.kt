@@ -5,13 +5,13 @@ import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedIdentityTi
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
 import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketIssuer
 import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
-import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalIdentityRepository
+import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountRepository
 import org.springframework.stereotype.Service
 
 @Service
 class IdentityTicketService(
     private val identityTicketStore: IdentityTicketStore,
-    private val externalIdentityRepository: ExternalIdentityRepository
+    private val externalAccountRepository: ExternalAccountRepository
 ) : IdentityTicketIssuer {
 
     override fun issue(identity: VerifiedExternalIdentity): IssuedIdentityTicket {
@@ -25,7 +25,7 @@ class IdentityTicketService(
     private fun determinePurpose(
         identity: VerifiedExternalIdentity
     ): IdentityTicketPurpose {
-        val isRegistered = externalIdentityRepository.existsByProviderAndSubject(
+        val isRegistered = externalAccountRepository.existsByProviderAndSubject(
             identity.provider,
             identity.subject
         )

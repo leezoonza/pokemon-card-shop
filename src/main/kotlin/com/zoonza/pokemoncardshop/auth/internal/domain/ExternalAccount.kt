@@ -7,23 +7,23 @@ import java.time.Instant
 @Table(
     uniqueConstraints = [
         UniqueConstraint(
-            name = "uk_external_identity_provider_subject",
+            name = "uk_external_account_provider_subject",
             columnNames = ["provider", "subject"]
         ),
         UniqueConstraint(
-            name = "uk_external_identity_provider_member_id",
+            name = "uk_external_account_provider_member_id",
             columnNames = ["provider", "member_id"]
         )
     ]
 )
-class ExternalIdentity private constructor(
+class ExternalAccount private constructor(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
 
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
-    val provider: IdentityProvider,
+    val provider: ExternalAccountProvider,
 
     @Column(nullable = false)
     val subject: String,
@@ -32,20 +32,20 @@ class ExternalIdentity private constructor(
     val memberId: Long,
 
     @Column(nullable = false)
-    val createdAt: Instant
+    val linkedAt: Instant
 ) {
     companion object {
         fun register(
-            provider: IdentityProvider,
+            provider: ExternalAccountProvider,
             subject: String,
             memberId: Long,
-            createdAt: Instant,
-        ): ExternalIdentity =
-            ExternalIdentity(
+            linkedAt: Instant,
+        ): ExternalAccount =
+            ExternalAccount(
                 provider = provider,
                 subject = subject,
                 memberId = memberId,
-                createdAt = createdAt
+                linkedAt = linkedAt
             )
     }
 }

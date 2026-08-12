@@ -8,10 +8,13 @@ import com.zoonza.pokemoncardshop.common.response.ApiResponse
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.web.bind.annotation.*
+import java.time.Clock
+import java.time.Instant
 
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
+    private val clock: Clock,
     private val authenticator: Authenticator,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
     private val identityTicketCookieManager: IdentityTicketCookieManager
@@ -22,7 +25,11 @@ class AuthController(
         @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String,
         response: HttpServletResponse
     ): ApiResponse<AuthenticationResponse> {
-        val command = SignupCommand(request.nickname, identityTicket)
+        val command = SignupCommand(
+            nickname = request.nickname,
+            identityTicket = identityTicket,
+            createdAt = Instant.now(clock),
+        )
 
         val result = authenticator.signup(command)
 
@@ -32,8 +39,8 @@ class AuthController(
         return ApiResponse.success(
             AuthenticationResponse(
                 accessToken = result.tokens.accessToken.value,
-                role = result.role,
-            ),
+                role = result.role
+            )
         )
     }
 
@@ -42,7 +49,10 @@ class AuthController(
         @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String,
         response: HttpServletResponse
     ): ApiResponse<AuthenticationResponse> {
-        val result = authenticator.authenticate(identityTicket)
+        val result = authenticator.login(
+            identityTicket = identityTicket,
+            loggedInAt = Instant.now(clock)
+        )
 
         identityTicketCookieManager.clear(response)
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
@@ -50,8 +60,8 @@ class AuthController(
         return ApiResponse.success(
             AuthenticationResponse(
                 accessToken = result.tokens.accessToken.value,
-                role = result.role,
-            ),
+                role = result.role
+            )
         )
     }
 
@@ -70,8 +80,8 @@ class AuthController(
         return ApiResponse.success(
             AuthenticationResponse(
                 accessToken = result.tokens.accessToken.value,
-                role = result.role,
-            ),
+                role = result.role
+            )
         )
     }
 

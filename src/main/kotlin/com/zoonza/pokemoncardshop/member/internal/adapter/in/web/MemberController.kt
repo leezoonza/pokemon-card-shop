@@ -1,9 +1,9 @@
 package com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web
 
 import com.zoonza.pokemoncardshop.common.response.ApiResponse
-import com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web.dto.ChangeNicknameRequest
+import com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web.dto.MemberNicknameUpdateRequest
 import com.zoonza.pokemoncardshop.member.internal.adapter.`in`.web.dto.NicknameAvailabilityResponse
-import com.zoonza.pokemoncardshop.member.internal.application.dto.UpdateNicknameCommand
+import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNicknameUpdateCommand
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
 import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberRegister
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
@@ -26,11 +26,11 @@ class MemberController(
     }
 
     @PutMapping("/me/nickname")
-    fun changeNickname(
+    fun updateNickname(
         @AuthenticationPrincipal memberId: Long,
-        @RequestBody request: ChangeNicknameRequest
+        @RequestBody request: MemberNicknameUpdateRequest
     ): ApiResponse<Unit> {
-        val command = UpdateNicknameCommand(memberId, request.nickname)
+        val command = MemberNicknameUpdateCommand(memberId, request.nickname)
 
         memberRegister.updateNickname(command)
 
