@@ -20,8 +20,6 @@ class GlobalExceptionHandler {
     fun handleDomainException(
         exception: DomainException,
     ): ResponseEntity<ApiResponse<ErrorResponse>> {
-        exception.cause?.let { logger.warn { it.message } }
-
         val errorCode = exception.errorCode
         val error = ErrorResponse.of(errorCode)
 

@@ -10,7 +10,7 @@ interface MemberAuthenticationApi {
      * @return 로그인한 회원의 역할
      * @throws DomainException 연결된 회원이 존재하지 않거나 비활성화된 경우
      */
-    fun login(command: MemberLoginCommand): MemberLoginResult
+    fun login(command: MemberLoginCommand): MemberLoginResult?
 
     /**
      * 회원 식별자로 현재 역할을 조회한다.
@@ -19,5 +19,5 @@ interface MemberAuthenticationApi {
      * @return 회원의 현재 역할
      * @throws DomainException 연결된 회원이 존재하지 않는 경우
      */
-    fun getMemberRole(memberId: Long): MemberRoleResult
+    fun getMemberRole(memberId: Long): MemberRoleResult?
 }

@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.member.integration
 
 import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenPort
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberErrorCode
@@ -28,7 +28,7 @@ import org.springframework.test.web.servlet.put
 @SpringBootTest
 class MemberNicknameIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
-    private val authTokenIssuer: AuthTokenIssuer,
+    private val authTokenPort: AuthTokenPort,
     private val memberRepository: MemberJpaRepository,
     private val externalIdentityRepository: ExternalAccountJpaRepository,
 ) {
@@ -87,5 +87,5 @@ class MemberNicknameIntegrationTests @Autowired constructor(
         )
 
     private fun accessTokenOf(member: Member): String =
-        authTokenIssuer.issue(member.id, member.role.value).accessToken.value
+        authTokenPort.issue(member.id, member.role.value).accessToken.value
 }

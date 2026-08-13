@@ -5,5 +5,7 @@ interface MemberRepository {
 
     fun save(member: Member): Member
 
-    fun findById(id: Long): Member?
+    fun findByIdOrThrow(id: Long): Member
+
+    fun findByIdOrNull(id: Long): Member?
 }

@@ -13,12 +13,12 @@ import tools.jackson.module.kotlin.jacksonObjectMapper
 import java.time.Duration
 import kotlin.io.encoding.Base64
 
-class RedisIdentityTicketStoreAdapterTests {
+class RedisIdentityTicketAdapterTests {
 
     private val redisTemplate = mockk<StringRedisTemplate>()
     private val valueOperations = mockk<ValueOperations<String, String>>()
     private val objectMapper = jacksonObjectMapper()
-    private val store = RedisIdentityTicketStoreAdapter(objectMapper, redisTemplate)
+    private val store = RedisIdentityTicketAdapter(objectMapper, redisTemplate)
 
     @Test
     fun `연동 계정을 일회용 티켓으로 저장한다`() {

@@ -4,8 +4,8 @@ import com.jayway.jsonpath.JsonPath
 import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenPort
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.member.internal.adapter.out.persistence.MemberJpaRepository
 import com.zoonza.pokemoncardshop.member.internal.domain.MemberRole
@@ -33,8 +33,8 @@ import org.springframework.test.web.servlet.post
 @SpringBootTest
 class AuthRefreshIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
-    private val authTokenIssuer: AuthTokenIssuer,
-    private val refreshTokenStore: RefreshTokenStore,
+    private val authTokenPort: AuthTokenPort,
+    private val refreshTokenPort: RefreshTokenPort,
     private val memberRepository: MemberJpaRepository,
     private val externalIdentityRepository: ExternalAccountJpaRepository,
     private val jwtDecoder: JwtDecoder,
@@ -49,8 +49,8 @@ class AuthRefreshIntegrationTests @Autowired constructor(
     @Test
     fun `리프레시 토큰을 한 번만 사용하고 인증 상태를 갱신한다`() {
         val member = memberRepository.saveAndFlush(memberFixture())
-        val originalTokens = authTokenIssuer.issue(member.id, member.role.value)
-        refreshTokenStore.save(
+        val originalTokens = authTokenPort.issue(member.id, member.role.value)
+        refreshTokenPort.save(
             member.id,
             originalTokens.refreshToken.value,
             originalTokens.refreshToken.ttl,
@@ -92,7 +92,7 @@ class AuthRefreshIntegrationTests @Autowired constructor(
 
         jwt.subject shouldBe member.id.toString()
         jwt.getClaimAsString("role") shouldBe MemberRole.MEMBER.value
-        refreshTokenStore.consume(rotatedRefreshToken) shouldBe member.id
+        refreshTokenPort.consume(rotatedRefreshToken) shouldBe member.id
 
         mockMvc.post("/api/auth/refresh") {
             with(csrf())
@@ -111,9 +111,9 @@ class AuthRefreshIntegrationTests @Autowired constructor(
     }
 
     @Test
-    fun `리프레시 토큰의 연결 회원이 없으면 유효하지 않은 토큰으로 응답한다`() {
-        val tokens = authTokenIssuer.issue(999L, MemberRole.MEMBER.value)
-        refreshTokenStore.save(
+    fun `리프레시 토큰의 연결 회원이 없으면 인증 실패로 응답한다`() {
+        val tokens = authTokenPort.issue(999L, MemberRole.MEMBER.value)
+        refreshTokenPort.save(
             999L,
             tokens.refreshToken.value,
             tokens.refreshToken.ttl,
@@ -131,9 +131,9 @@ class AuthRefreshIntegrationTests @Autowired constructor(
             .andExpect {
                 status { isUnauthorized() }
                 jsonPath("$.success") { value(false) }
-                jsonPath("$.data.code") { value(AuthErrorCode.INVALID_REFRESH_TOKEN.code) }
+                jsonPath("$.data.code") { value(AuthErrorCode.AUTHENTICATION_FAILED.code) }
                 jsonPath("$.data.message") {
-                    value(AuthErrorCode.INVALID_REFRESH_TOKEN.message)
+                    value(AuthErrorCode.AUTHENTICATION_FAILED.message)
                 }
             }
     }

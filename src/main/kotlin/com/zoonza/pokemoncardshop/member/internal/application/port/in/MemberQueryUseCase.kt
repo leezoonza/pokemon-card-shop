@@ -1,14 +1,11 @@
 package com.zoonza.pokemoncardshop.member.internal.application.port.`in`
 
-import com.zoonza.pokemoncardshop.member.internal.domain.Member
 import com.zoonza.pokemoncardshop.member.internal.domain.Nickname
 
 /**
  * 회원과 닉네임 사용 가능 여부를 조회한다.
  */
-interface MemberFinder {
-    fun findById(memberId: Long): Member
-
+interface MemberQueryUseCase {
     /**
      * 동일한 닉네임을 사용하는 회원이 있는지 확인한다.
      *

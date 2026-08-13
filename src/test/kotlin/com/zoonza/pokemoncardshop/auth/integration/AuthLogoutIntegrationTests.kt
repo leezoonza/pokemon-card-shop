@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.auth.integration
 
 import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import io.kotest.assertions.throwables.shouldThrow
@@ -27,12 +27,12 @@ import java.time.Duration
 @SpringBootTest
 class AuthLogoutIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
-    private val refreshTokenStore: RefreshTokenStore,
+    private val refreshTokenPort: RefreshTokenPort,
 ) {
 
     @Test
     fun `리프레시 토큰을 폐기하고 로그아웃한다`() {
-        refreshTokenStore.save(42L, "logout-refresh-token", Duration.ofDays(14))
+        refreshTokenPort.save(42L, "logout-refresh-token", Duration.ofDays(14))
 
         val result = mockMvc.post("/api/auth/logout") {
             with(csrf())
@@ -55,7 +55,7 @@ class AuthLogoutIntegrationTests @Autowired constructor(
             .shouldContain("Max-Age=0")
 
         val exception = shouldThrow<DomainException> {
-            refreshTokenStore.consume("logout-refresh-token")
+            refreshTokenPort.consume("logout-refresh-token")
         }
         exception.errorCode shouldBe AuthErrorCode.INVALID_REFRESH_TOKEN
     }

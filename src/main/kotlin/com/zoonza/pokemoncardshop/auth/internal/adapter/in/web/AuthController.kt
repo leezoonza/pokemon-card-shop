@@ -1,13 +1,14 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web
 
-import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.AuthenticationResponse
-import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.SignupRequest
-import com.zoonza.pokemoncardshop.auth.internal.application.dto.SignupCommand
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.Authenticator
+import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.LoginResponse
+import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.dto.RefreshResponse
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.AuthenticationUseCase
 import com.zoonza.pokemoncardshop.common.response.ApiResponse
 import jakarta.servlet.http.HttpServletResponse
-import jakarta.validation.Valid
-import org.springframework.web.bind.annotation.*
+import org.springframework.web.bind.annotation.CookieValue
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestMapping
+import org.springframework.web.bind.annotation.RestController
 import java.time.Clock
 import java.time.Instant
 
@@ -15,41 +16,16 @@ import java.time.Instant
 @RequestMapping("/api/auth")
 class AuthController(
     private val clock: Clock,
-    private val authenticator: Authenticator,
+    private val authenticationUseCase: AuthenticationUseCase,
     private val refreshTokenCookieManager: RefreshTokenCookieManager,
     private val identityTicketCookieManager: IdentityTicketCookieManager
 ) {
-    @PostMapping("/signup")
-    fun signup(
-        @Valid @RequestBody request: SignupRequest,
-        @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String,
-        response: HttpServletResponse
-    ): ApiResponse<AuthenticationResponse> {
-        val command = SignupCommand(
-            nickname = request.nickname,
-            identityTicket = identityTicket,
-            createdAt = Instant.now(clock),
-        )
-
-        val result = authenticator.signup(command)
-
-        identityTicketCookieManager.clear(response)
-        refreshTokenCookieManager.write(response, result.tokens.refreshToken)
-
-        return ApiResponse.success(
-            AuthenticationResponse(
-                accessToken = result.tokens.accessToken.value,
-                role = result.role
-            )
-        )
-    }
-
     @PostMapping("/login")
     fun login(
-        @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String,
-        response: HttpServletResponse
-    ): ApiResponse<AuthenticationResponse> {
-        val result = authenticator.login(
+        response: HttpServletResponse,
+        @CookieValue(IdentityTicketCookieManager.COOKIE_NAME) identityTicket: String
+    ): ApiResponse<LoginResponse> {
+        val result = authenticationUseCase.login(
             identityTicket = identityTicket,
             loggedInAt = Instant.now(clock)
         )
@@ -57,43 +33,27 @@ class AuthController(
         identityTicketCookieManager.clear(response)
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
 
-        return ApiResponse.success(
-            AuthenticationResponse(
-                accessToken = result.tokens.accessToken.value,
-                role = result.role
-            )
-        )
+        return ApiResponse.success(LoginResponse(result))
     }
 
     @PostMapping("/refresh")
     fun refresh(
-        @CookieValue(
-            name = RefreshTokenCookieManager.COOKIE_NAME,
-            required = false,
-        ) refreshToken: String?,
         response: HttpServletResponse,
-    ): ApiResponse<AuthenticationResponse> {
-        val result = authenticator.reissue(refreshToken)
+        @CookieValue(name = RefreshTokenCookieManager.COOKIE_NAME, required = false) refreshToken: String?
+    ): ApiResponse<RefreshResponse> {
+        val result = authenticationUseCase.refresh(refreshToken)
 
         refreshTokenCookieManager.write(response, result.tokens.refreshToken)
 
-        return ApiResponse.success(
-            AuthenticationResponse(
-                accessToken = result.tokens.accessToken.value,
-                role = result.role
-            )
-        )
+        return ApiResponse.success(RefreshResponse(result))
     }
 
     @PostMapping("/logout")
     fun logout(
-        @CookieValue(
-            name = RefreshTokenCookieManager.COOKIE_NAME,
-            required = false
-        ) refreshToken: String?,
         response: HttpServletResponse,
+        @CookieValue(name = RefreshTokenCookieManager.COOKIE_NAME, required = false) refreshToken: String?
     ): ApiResponse<Unit> {
-        authenticator.logout(refreshToken)
+        authenticationUseCase.logout(refreshToken)
 
         refreshTokenCookieManager.clear(response)
 

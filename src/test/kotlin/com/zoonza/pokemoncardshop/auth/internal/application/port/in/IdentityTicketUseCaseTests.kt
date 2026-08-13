@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.application.port.`in`
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketPort
 import com.zoonza.pokemoncardshop.auth.internal.application.service.IdentityTicketService
 import com.zoonza.pokemoncardshop.auth.internal.domain.ExternalAccountRepository
 import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
@@ -11,12 +11,12 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
-class IdentityTicketIssuerTests {
+class IdentityTicketUseCaseTests {
 
-    private val identityTicketStore = mockk<IdentityTicketStore>()
+    private val identityTicketPort = mockk<IdentityTicketPort>()
     private val externalAccountRepository = mockk<ExternalAccountRepository>()
-    private val identityTicketIssuer: IdentityTicketIssuer = IdentityTicketService(
-        identityTicketStore = identityTicketStore,
+    private val identityTicketUseCase: IdentityTicketUseCase = IdentityTicketService(
+        identityTicketPort = identityTicketPort,
         externalAccountRepository = externalAccountRepository,
     )
 
@@ -27,16 +27,16 @@ class IdentityTicketIssuerTests {
             externalAccountRepository.existsByProviderAndSubject(identity.provider, identity.subject)
         } returns false
         every {
-            identityTicketStore.issue(identity, IdentityTicketPurpose.SIGNUP.ttl)
+            identityTicketPort.issue(identity, IdentityTicketPurpose.SIGNUP.ttl)
         } returns "signup-ticket"
 
-        val result = identityTicketIssuer.issue(identity)
+        val result = identityTicketUseCase.issue(identity)
 
         result.purpose shouldBe IdentityTicketPurpose.SIGNUP
         result.ticket shouldBe "signup-ticket"
         verify(exactly = 1) {
             externalAccountRepository.existsByProviderAndSubject(identity.provider, identity.subject)
-            identityTicketStore.issue(identity, IdentityTicketPurpose.SIGNUP.ttl)
+            identityTicketPort.issue(identity, IdentityTicketPurpose.SIGNUP.ttl)
         }
     }
 
@@ -47,16 +47,16 @@ class IdentityTicketIssuerTests {
             externalAccountRepository.existsByProviderAndSubject(identity.provider, identity.subject)
         } returns true
         every {
-            identityTicketStore.issue(identity, IdentityTicketPurpose.LOGIN.ttl)
+            identityTicketPort.issue(identity, IdentityTicketPurpose.LOGIN.ttl)
         } returns "login-ticket"
 
-        val result = identityTicketIssuer.issue(identity)
+        val result = identityTicketUseCase.issue(identity)
 
         result.purpose shouldBe IdentityTicketPurpose.LOGIN
         result.ticket shouldBe "login-ticket"
         verify(exactly = 1) {
             externalAccountRepository.existsByProviderAndSubject(identity.provider, identity.subject)
-            identityTicketStore.issue(identity, IdentityTicketPurpose.LOGIN.ttl)
+            identityTicketPort.issue(identity, IdentityTicketPurpose.LOGIN.ttl)
         }
     }
 }

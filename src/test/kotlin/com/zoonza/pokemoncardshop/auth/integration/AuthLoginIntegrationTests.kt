@@ -5,8 +5,8 @@ import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketPort
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.auth.test.fake.externalIdentityFixture
 import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
@@ -40,8 +40,8 @@ import java.time.Instant
 @SpringBootTest
 class AuthLoginIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
-    private val identityTicketStore: IdentityTicketStore,
-    private val refreshTokenStore: RefreshTokenStore,
+    private val identityTicketPort: IdentityTicketPort,
+    private val refreshTokenPort: RefreshTokenPort,
     private val memberRepository: MemberJpaRepository,
     private val externalIdentityRepository: ExternalAccountJpaRepository,
     private val jwtDecoder: JwtDecoder,
@@ -65,7 +65,7 @@ class AuthLoginIntegrationTests @Autowired constructor(
                 createdAt = registeredAt,
             ),
         )
-        val identityTicket = identityTicketStore.issue(
+        val identityTicket = identityTicketPort.issue(
             verifiedIdentity,
             Duration.ofMinutes(10),
         )
@@ -114,10 +114,10 @@ class AuthLoginIntegrationTests @Autowired constructor(
 
         jwt.subject shouldBe member.id.toString()
         jwt.getClaimAsString("role") shouldBe MemberRole.MEMBER.value
-        refreshTokenStore.consume(refreshToken) shouldBe member.id
+        refreshTokenPort.consume(refreshToken) shouldBe member.id
 
         val exception = shouldThrow<DomainException> {
-            identityTicketStore.consume(identityTicket)
+            identityTicketPort.consume(identityTicket)
         }
 
         exception.errorCode shouldBe AuthErrorCode.INVALID_IDENTITY_TICKET
@@ -136,7 +136,7 @@ class AuthLoginIntegrationTests @Autowired constructor(
                 createdAt = registeredAt,
             ),
         )
-        val identityTicket = identityTicketStore.issue(
+        val identityTicket = identityTicketPort.issue(
             verifiedIdentity,
             Duration.ofMinutes(10),
         )

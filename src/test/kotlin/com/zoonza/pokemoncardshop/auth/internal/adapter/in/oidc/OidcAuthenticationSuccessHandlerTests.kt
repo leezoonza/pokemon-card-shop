@@ -3,7 +3,7 @@ package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedIdentityTicket
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketIssuer
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketUseCase
 import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
@@ -22,9 +22,9 @@ import java.util.stream.Stream
 class OidcAuthenticationSuccessHandlerTests {
 
     private val cookieManager = mockk<IdentityTicketCookieManager>()
-    private val identityTicketIssuer = mockk<IdentityTicketIssuer>()
+    private val identityTicketUseCase = mockk<IdentityTicketUseCase>()
     private val handler = OidcAuthenticationSuccessHandler(
-        identityTicketIssuer,
+        identityTicketUseCase,
         RedirectProperties(
             signupUri = SIGNUP_URI,
             loginUri = LOGIN_URI,
@@ -47,7 +47,7 @@ class OidcAuthenticationSuccessHandlerTests {
             identity.subject,
         )
         every { authentication.principal } returns oidcUser
-        every { identityTicketIssuer.issue(identity) } returns
+        every { identityTicketUseCase.issue(identity) } returns
                 IssuedIdentityTicket(purpose, "identity-ticket")
         every {
             cookieManager.write(any(), purpose, "identity-ticket")
@@ -63,7 +63,7 @@ class OidcAuthenticationSuccessHandlerTests {
 
         response.redirectedUrl shouldBe redirectUri
 
-        verify(exactly = 1) { identityTicketIssuer.issue(identity) }
+        verify(exactly = 1) { identityTicketUseCase.issue(identity) }
         verify(exactly = 1) { cookieManager.write(response, purpose, "identity-ticket") }
     }
 
@@ -83,7 +83,7 @@ class OidcAuthenticationSuccessHandlerTests {
 
         exception.error.errorCode shouldBe "invalid_oidc_principal"
 
-        verify(exactly = 0) { identityTicketIssuer.issue(any()) }
+        verify(exactly = 0) { identityTicketUseCase.issue(any()) }
         verify(exactly = 0) { cookieManager.write(any(), any(), any()) }
     }
 

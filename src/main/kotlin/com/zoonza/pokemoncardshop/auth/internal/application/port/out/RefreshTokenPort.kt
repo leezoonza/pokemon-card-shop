@@ -2,7 +2,7 @@ package com.zoonza.pokemoncardshop.auth.internal.application.port.out
 
 import java.time.Duration
 
-interface RefreshTokenStore {
+interface RefreshTokenPort {
     fun save(
         memberId: Long,
         refreshToken: String,

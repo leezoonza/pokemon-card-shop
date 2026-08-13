@@ -5,8 +5,8 @@ import com.zoonza.pokemoncardshop.TestcontainersConfiguration
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.RefreshTokenCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.adapter.out.persistence.ExternalAccountJpaRepository
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketPort
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.auth.test.fake.verifiedExternalIdentityFixture
 import com.zoonza.pokemoncardshop.common.error.DomainException
@@ -39,8 +39,8 @@ import java.time.Duration
 @SpringBootTest
 class AuthSignupIntegrationTests @Autowired constructor(
     private val mockMvc: MockMvc,
-    private val identityTicketStore: IdentityTicketStore,
-    private val refreshTokenStore: RefreshTokenStore,
+    private val identityTicketPort: IdentityTicketPort,
+    private val refreshTokenPort: RefreshTokenPort,
     private val memberRepository: MemberJpaRepository,
     private val externalIdentityRepository: ExternalAccountJpaRepository,
     private val jwtDecoder: JwtDecoder,
@@ -55,12 +55,12 @@ class AuthSignupIntegrationTests @Autowired constructor(
     @Test
     fun `검증된 연동 계정으로 가입하고 인증 상태를 생성한다`() {
         val verifiedIdentity = verifiedExternalIdentityFixture()
-        val identityTicket = identityTicketStore.issue(
+        val identityTicket = identityTicketPort.issue(
             verifiedIdentity,
             Duration.ofMinutes(10),
         )
 
-        val result = mockMvc.post("/api/auth/signup") {
+        val result = mockMvc.post("/api/external-accounts") {
             with(csrf())
             cookie(
                 MockCookie(
@@ -121,10 +121,10 @@ class AuthSignupIntegrationTests @Autowired constructor(
 
         jwt.subject shouldBe member.id.toString()
         jwt.getClaimAsString("role") shouldBe MemberRole.MEMBER.value
-        refreshTokenStore.consume(refreshToken) shouldBe member.id
+        refreshTokenPort.consume(refreshToken) shouldBe member.id
 
         val exception = shouldThrow<DomainException> {
-            identityTicketStore.consume(identityTicket)
+            identityTicketPort.consume(identityTicket)
         }
 
         exception.errorCode shouldBe AuthErrorCode.INVALID_IDENTITY_TICKET

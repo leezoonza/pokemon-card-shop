@@ -1,7 +1,7 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.redis
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.IdentityTicketPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -13,10 +13,10 @@ import java.time.Duration
 import kotlin.io.encoding.Base64
 
 @Component
-class RedisIdentityTicketStoreAdapter(
+class RedisIdentityTicketAdapter(
     private val objectMapper: ObjectMapper,
     private val redisTemplate: StringRedisTemplate
-) : IdentityTicketStore {
+) : IdentityTicketPort {
     private val secureRandom = SecureRandom()
 
     override fun issue(

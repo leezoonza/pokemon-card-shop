@@ -1,17 +1,17 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.token
 
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IssuedAuthTokens
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenIssuer
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.AuthTokenPort
 import org.springframework.stereotype.Component
 import java.time.Clock
 import java.time.Instant
 
 @Component
-class AuthTokenIssuerAdapter(
+class AuthTokenAdapter(
     private val clock: Clock,
     private val accessTokenGenerator: JwtAccessTokenGenerator,
     private val refreshTokenGenerator: OpaqueRefreshTokenGenerator
-) : AuthTokenIssuer {
+) : AuthTokenPort {
 
     override fun issue(memberId: Long, role: String): IssuedAuthTokens {
         val issuedAt = Instant.now(clock)

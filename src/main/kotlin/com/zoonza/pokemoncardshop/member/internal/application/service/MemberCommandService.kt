@@ -5,17 +5,15 @@ import com.zoonza.pokemoncardshop.member.api.MemberRegisterCommand
 import com.zoonza.pokemoncardshop.member.api.MemberRegisterResult
 import com.zoonza.pokemoncardshop.member.api.MemberRegistrationApi
 import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNicknameUpdateCommand
-import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
-import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberRegister
+import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberCommandUseCase
 import com.zoonza.pokemoncardshop.member.internal.domain.*
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class MemberCommandService(
-    private val memberFinder: MemberFinder,
     private val memberRepository: MemberRepository
-) : MemberRegister,
+) : MemberCommandUseCase,
     MemberRegistrationApi {
 
     @Transactional
@@ -37,7 +35,7 @@ class MemberCommandService(
 
     @Transactional
     override fun updateNickname(command: MemberNicknameUpdateCommand) {
-        val member = memberFinder.findById(command.memberId)
+        val member = memberRepository.findByIdOrThrow(command.memberId)
 
         if (member.nickname == command.nickname) return
 

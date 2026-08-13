@@ -1,7 +1,6 @@
 package com.zoonza.pokemoncardshop.member.api
 
 import com.zoonza.pokemoncardshop.common.error.DomainException
-import com.zoonza.pokemoncardshop.member.internal.application.port.`in`.MemberFinder
 import com.zoonza.pokemoncardshop.member.internal.application.service.MemberCommandService
 import com.zoonza.pokemoncardshop.member.internal.domain.*
 import com.zoonza.pokemoncardshop.member.test.fake.TEST_MEMBER_CREATED_AT
@@ -16,12 +15,8 @@ import org.junit.jupiter.api.Test
 
 class MemberRegistrationApiTests {
 
-    private val memberFinder = mockk<MemberFinder>()
     private val memberRepository = mockk<MemberRepository>()
-    private val memberRegistrationApi: MemberRegistrationApi = MemberCommandService(
-        memberFinder = memberFinder,
-        memberRepository = memberRepository,
-    )
+    private val memberRegistrationApi: MemberRegistrationApi = MemberCommandService(memberRepository)
 
     @Test
     fun `사용 가능한 닉네임으로 일반 회원을 가입시킨다`() {

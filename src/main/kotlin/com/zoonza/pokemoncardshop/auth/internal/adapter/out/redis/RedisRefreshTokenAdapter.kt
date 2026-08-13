@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.auth.internal.adapter.out.redis
 
-import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenStore
+import com.zoonza.pokemoncardshop.auth.internal.application.port.out.RefreshTokenPort
 import com.zoonza.pokemoncardshop.auth.internal.domain.AuthErrorCode
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import org.springframework.data.redis.core.StringRedisTemplate
@@ -8,9 +8,9 @@ import org.springframework.stereotype.Component
 import java.time.Duration
 
 @Component
-class RedisRefreshTokenStoreAdapter(
+class RedisRefreshTokenAdapter(
     private val redisTemplate: StringRedisTemplate
-) : RefreshTokenStore {
+) : RefreshTokenPort {
 
     override fun save(
         memberId: Long,

@@ -45,6 +45,7 @@ class SecurityConfig(
                     "/oauth2/authorization/**",
                     "/login/oauth2/code/**",
                     "/api/auth/**",
+                    "/api/external-accounts",
                     "/api/members/nickname",
                     "/error",
                 ).permitAll()

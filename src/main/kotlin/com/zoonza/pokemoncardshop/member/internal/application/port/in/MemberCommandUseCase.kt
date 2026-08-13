@@ -6,7 +6,7 @@ import com.zoonza.pokemoncardshop.member.internal.application.dto.MemberNickname
 /**
  * 회원의 등록과 관련된 기능을 제공한다.
  */
-interface MemberRegister {
+interface MemberCommandUseCase {
     /**
      * 회원의 현재 닉네임을 요청한 닉네임으로 변경한다.
      *

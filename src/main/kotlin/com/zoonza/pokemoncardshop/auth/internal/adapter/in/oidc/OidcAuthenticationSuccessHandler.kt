@@ -3,7 +3,7 @@ package com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.oidc
 import com.zoonza.pokemoncardshop.auth.internal.adapter.`in`.web.IdentityTicketCookieManager
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.IdentityTicketPurpose
 import com.zoonza.pokemoncardshop.auth.internal.application.dto.VerifiedExternalIdentity
-import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketIssuer
+import com.zoonza.pokemoncardshop.auth.internal.application.port.`in`.IdentityTicketUseCase
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.security.core.Authentication
@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 
 @Component
 class OidcAuthenticationSuccessHandler(
-    private val identityTicketIssuer: IdentityTicketIssuer,
+    private val identityTicketUseCase: IdentityTicketUseCase,
     private val redirectProperties: RedirectProperties,
     private val cookieManager: IdentityTicketCookieManager,
 ) : AuthenticationSuccessHandler {
@@ -28,7 +28,7 @@ class OidcAuthenticationSuccessHandler(
 
         val identity = VerifiedExternalIdentity(oidcUser.provider, oidcUser.subject)
 
-        val result = identityTicketIssuer.issue(identity)
+        val result = identityTicketUseCase.issue(identity)
 
         val redirectUri = redirectUriFor(result.purpose)
 

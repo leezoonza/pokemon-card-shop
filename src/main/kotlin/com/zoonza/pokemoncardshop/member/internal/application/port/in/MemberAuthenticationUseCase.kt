@@ -2,6 +2,6 @@ package com.zoonza.pokemoncardshop.member.internal.application.port.`in`
 
 import com.zoonza.pokemoncardshop.member.api.MemberLoginResult
 
-interface MemberAuthenticator {
+interface MemberAuthenticationUseCase {
     fun login(identityTicket: String): MemberLoginResult
 }

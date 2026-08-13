@@ -14,27 +14,23 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.junit.jupiter.api.Test
 
-class MemberRegisterTests {
+class MemberCommandUseCaseTests {
 
-    private val memberFinder = mockk<MemberFinder>()
     private val memberRepository = mockk<MemberRepository>()
-    private val memberRegister: MemberRegister = MemberCommandService(
-        memberFinder = memberFinder,
-        memberRepository = memberRepository,
-    )
+    private val memberCommandUseCase: MemberCommandUseCase = MemberCommandService(memberRepository)
 
     @Test
     fun `사용 가능한 닉네임으로 변경한다`() {
         val member = persistedMemberFixture()
         val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
-        every { memberFinder.findById(42L) } returns member
+        every { memberRepository.findByIdOrThrow(42L) } returns member
         every { memberRepository.existsByNickname(command.nickname) } returns false
 
-        memberRegister.updateNickname(command)
+        memberCommandUseCase.updateNickname(command)
 
         member.nickname shouldBe command.nickname
         verify(exactly = 1) {
-            memberFinder.findById(42L)
+            memberRepository.findByIdOrThrow(42L)
             memberRepository.existsByNickname(command.nickname)
         }
     }
@@ -44,9 +40,9 @@ class MemberRegisterTests {
         val nickname = Nickname("피카츄")
         val member = persistedMemberFixture(nickname = nickname)
         val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = nickname.value)
-        every { memberFinder.findById(42L) } returns member
+        every { memberRepository.findByIdOrThrow(42L) } returns member
 
-        memberRegister.updateNickname(command)
+        memberCommandUseCase.updateNickname(command)
 
         member.nickname shouldBe nickname
         verify(exactly = 0) { memberRepository.existsByNickname(any()) }
@@ -57,11 +53,11 @@ class MemberRegisterTests {
         val originalNickname = Nickname("피카츄")
         val member = persistedMemberFixture(nickname = originalNickname)
         val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
-        every { memberFinder.findById(42L) } returns member
+        every { memberRepository.findByIdOrThrow(42L) } returns member
         every { memberRepository.existsByNickname(command.nickname) } returns true
 
         val exception = shouldThrow<DomainException> {
-            memberRegister.updateNickname(command)
+            memberCommandUseCase.updateNickname(command)
         }
 
         exception.errorCode shouldBe MemberErrorCode.DUPLICATE_NICKNAME
@@ -72,11 +68,11 @@ class MemberRegisterTests {
     @Test
     fun `존재하지 않는 회원의 닉네임을 변경할 수 없다`() {
         val command = MemberNicknameUpdateCommand(memberId = 42L, nickname = "라이츄")
-        every { memberFinder.findById(42L) } throws
+        every { memberRepository.findByIdOrThrow(42L) } throws
                 DomainException(MemberErrorCode.MEMBER_NOT_FOUND)
 
         val exception = shouldThrow<DomainException> {
-            memberRegister.updateNickname(command)
+            memberCommandUseCase.updateNickname(command)
         }
 
         exception.errorCode shouldBe MemberErrorCode.MEMBER_NOT_FOUND

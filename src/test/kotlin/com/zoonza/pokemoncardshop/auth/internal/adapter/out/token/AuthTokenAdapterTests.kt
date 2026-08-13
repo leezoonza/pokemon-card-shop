@@ -12,7 +12,7 @@ import java.time.Duration
 import java.time.Instant
 import java.time.ZoneOffset
 
-class AuthTokenIssuerAdapterTests {
+class AuthTokenAdapterTests {
 
     @Test
     fun `같은 발급 시각으로 액세스 토큰과 리프레시 토큰을 발급한다`() {
@@ -28,7 +28,7 @@ class AuthTokenIssuerAdapterTests {
 
         every { refreshTokenGenerator.generate(issuedAt) } returns refreshToken
 
-        val issuer = AuthTokenIssuerAdapter(
+        val issuer = AuthTokenAdapter(
             Clock.fixed(issuedAt, ZoneOffset.UTC),
             accessTokenGenerator,
             refreshTokenGenerator,

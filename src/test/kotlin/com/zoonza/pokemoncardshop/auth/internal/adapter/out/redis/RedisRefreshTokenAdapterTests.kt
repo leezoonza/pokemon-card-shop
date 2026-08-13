@@ -10,11 +10,11 @@ import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
 import java.time.Duration
 
-class RedisRefreshTokenStoreAdapterTests {
+class RedisRefreshTokenAdapterTests {
 
     private val redisTemplate = mockk<StringRedisTemplate>()
     private val valueOperations = mockk<ValueOperations<String, String>>()
-    private val store = RedisRefreshTokenStoreAdapter(redisTemplate)
+    private val store = RedisRefreshTokenAdapter(redisTemplate)
 
     @Test
     fun `회원의 리프레시 토큰을 만료 시간과 함께 저장한다`() {
