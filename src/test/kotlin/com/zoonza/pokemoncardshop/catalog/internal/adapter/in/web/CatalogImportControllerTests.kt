@@ -2,8 +2,8 @@ package com.zoonza.pokemoncardshop.catalog.internal.adapter.`in`.web
 
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionCandidateSummary
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesCandidateSummary
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogCandidateFinder
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogImporter
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogFetchUseCase
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogImportUseCase
 import com.zoonza.pokemoncardshop.catalog.test.fake.expansionImportCommandFixture
 import com.zoonza.pokemoncardshop.catalog.test.fake.expansionImportSelectionCommandFixture
 import com.zoonza.pokemoncardshop.catalog.test.fake.seriesImportCommandFixture
@@ -17,20 +17,20 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 
 class CatalogImportControllerTests {
 
-    private val catalogCandidateFinder = mockk<CatalogCandidateFinder>()
-    private val catalogImporter = mockk<CatalogImporter>()
+    private val catalogFetchUseCase = mockk<CatalogFetchUseCase>()
+    private val catalogImportUseCase = mockk<CatalogImportUseCase>()
     private val mockMvc: MockMvc = MockMvcBuilders
         .standaloneSetup(
             CatalogImportController(
-                catalogCandidateFinder = catalogCandidateFinder,
-                catalogImporter = catalogImporter,
+                catalogFetchUseCase = catalogFetchUseCase,
+                catalogImportUseCase = catalogImportUseCase,
             ),
         )
         .build()
 
     @Test
     fun `시리즈 등록 후보를 응답한다`() {
-        every { catalogCandidateFinder.findSeries() } returns listOf(
+        every { catalogFetchUseCase.fetchSeriesSummaries() } returns listOf(
             SeriesCandidateSummary(
                 sourceId = "sv",
                 name = "Scarlet & Violet",
@@ -48,13 +48,13 @@ class CatalogImportControllerTests {
                 jsonPath("$.data[0].registered") { value(false) }
             }
 
-        verify(exactly = 1) { catalogCandidateFinder.findSeries() }
+        verify(exactly = 1) { catalogFetchUseCase.fetchSeriesSummaries() }
     }
 
     @Test
     fun `시리즈 등록 요청을 전달한다`() {
         val command = seriesImportCommandFixture()
-        every { catalogImporter.importSeries(command) } just Runs
+        every { catalogImportUseCase.importSeries(command) } just Runs
 
         mockMvc.post("/api/admin/catalog/imports/series") {
             contentType = MediaType.APPLICATION_JSON
@@ -70,12 +70,12 @@ class CatalogImportControllerTests {
             jsonPath("$.success") { value(true) }
         }
 
-        verify(exactly = 1) { catalogImporter.importSeries(command) }
+        verify(exactly = 1) { catalogImportUseCase.importSeries(command) }
     }
 
     @Test
     fun `선택한 시리즈의 확장팩 등록 후보를 응답한다`() {
-        every { catalogCandidateFinder.findExpansions("sv") } returns listOf(
+        every { catalogFetchUseCase.fetchExpansionSummaries("sv") } returns listOf(
             ExpansionCandidateSummary(
                 sourceId = "sv01",
                 name = "Scarlet & Violet",
@@ -93,7 +93,7 @@ class CatalogImportControllerTests {
                 jsonPath("$.data[0].symbolUrl") { doesNotExist() }
             }
 
-        verify(exactly = 1) { catalogCandidateFinder.findExpansions("sv") }
+        verify(exactly = 1) { catalogFetchUseCase.fetchExpansionSummaries("sv") }
     }
 
     @Test
@@ -107,7 +107,7 @@ class CatalogImportControllerTests {
                 ),
             ),
         )
-        every { catalogImporter.importExpansionAndCard(command) } just Runs
+        every { catalogImportUseCase.importExpansionAndCard(command) } just Runs
 
         mockMvc.post("/api/admin/catalog/imports/series/sv/expansions") {
             contentType = MediaType.APPLICATION_JSON
@@ -130,7 +130,7 @@ class CatalogImportControllerTests {
             jsonPath("$.success") { value(true) }
         }
 
-        verify(exactly = 1) { catalogImporter.importExpansionAndCard(command) }
+        verify(exactly = 1) { catalogImportUseCase.importExpansionAndCard(command) }
     }
 
     @Test
@@ -142,6 +142,6 @@ class CatalogImportControllerTests {
             status { isBadRequest() }
         }
 
-        verify(exactly = 0) { catalogImporter.importExpansionAndCard(any()) }
+        verify(exactly = 0) { catalogImportUseCase.importExpansionAndCard(any()) }
     }
 }

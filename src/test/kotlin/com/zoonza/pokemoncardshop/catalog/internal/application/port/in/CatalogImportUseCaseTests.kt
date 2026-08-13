@@ -1,8 +1,10 @@
 package com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`
 
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CardNameTranslator
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
-import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogImportCommandService
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CardNameTranslationPort
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
+import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogCommandService
+import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogFetchService
+import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogImportFacade
 import com.zoonza.pokemoncardshop.catalog.internal.domain.CatalogImportErrorCode
 import com.zoonza.pokemoncardshop.catalog.internal.domain.card.*
 import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.CardCount
@@ -23,20 +25,30 @@ import java.time.Clock
 import java.time.LocalDate
 import java.time.ZoneOffset
 
-class CatalogImporterTests {
+class CatalogImportUseCaseTests {
 
-    private val catalogSourceFetcher = mockk<CatalogSourceFetcher>()
-    private val cardNameTranslator = mockk<CardNameTranslator>()
+    private val catalogSourcePort = mockk<CatalogSourcePort>()
+    private val cardNameTranslationPort = mockk<CardNameTranslationPort>()
     private val seriesRepository = mockk<SeriesRepository>()
     private val expansionRepository = mockk<ExpansionRepository>()
     private val cardRepository = mockk<CardRepository>()
-    private val catalogImporter: CatalogImporter = CatalogImportCommandService(
-        catalogSourceFetcher = catalogSourceFetcher,
-        cardNameTranslator = cardNameTranslator,
+    private val catalogFetchService = CatalogFetchService(
+        catalogSourcePort = catalogSourcePort,
+        cardNameTranslationPort = cardNameTranslationPort,
+        seriesRepository = seriesRepository,
+        expansionRepository = expansionRepository,
+    )
+    private val catalogCommandService = CatalogCommandService(
         seriesRepository = seriesRepository,
         expansionRepository = expansionRepository,
         cardRepository = cardRepository,
         clock = Clock.fixed(TEST_REGISTERED_AT, ZoneOffset.UTC),
+    )
+    private val catalogImportUseCase: CatalogImportUseCase = CatalogImportFacade(
+        seriesRepository = seriesRepository,
+        expansionRepository = expansionRepository,
+        catalogFetchService = catalogFetchService,
+        catalogCommandService = catalogCommandService,
     )
 
     @Test
@@ -45,10 +57,10 @@ class CatalogImporterTests {
         val command = seriesImportCommandFixture()
 
         every { seriesRepository.existsBySourceId("sv") } returns false
-        every { catalogSourceFetcher.fetchSeries("sv") } returns sourceSeriesFixture()
+        every { catalogSourcePort.fetchSeries("sv") } returns sourceSeriesFixture()
         every { seriesRepository.save(capture(seriesSlot)) } answers { firstArg() }
 
-        catalogImporter.importSeries(command)
+        catalogImportUseCase.importSeries(command)
 
         with(seriesSlot.captured) {
             sourceId shouldBe "sv"
@@ -59,7 +71,7 @@ class CatalogImporterTests {
 
         verify(exactly = 1) {
             seriesRepository.existsBySourceId("sv")
-            catalogSourceFetcher.fetchSeries("sv")
+            catalogSourcePort.fetchSeries("sv")
             seriesRepository.save(any())
         }
     }
@@ -68,11 +80,11 @@ class CatalogImporterTests {
     fun `이미 등록된 시리즈는 다시 등록하지 않는다`() {
         every { seriesRepository.existsBySourceId("sv") } returns true
 
-        catalogImporter.importSeries(seriesImportCommandFixture())
+        catalogImportUseCase.importSeries(seriesImportCommandFixture())
 
         verify(exactly = 1) { seriesRepository.existsBySourceId("sv") }
         verify(exactly = 0) {
-            catalogSourceFetcher.fetchSeries(any())
+            catalogSourcePort.fetchSeries(any())
             seriesRepository.save(any())
         }
     }
@@ -85,21 +97,21 @@ class CatalogImporterTests {
 
         every { seriesRepository.findBySourceId("sv") } returns series
         every { expansionRepository.existsBySourceId("sv01") } returns false
-        every { catalogSourceFetcher.fetchExpansion("sv01") } returns sourceExpansionFixture(
+        every { catalogSourcePort.fetchExpansion("sv01") } returns sourceExpansionFixture(
             cardSourceIds = listOf("sv01-1", "sv01-2"),
         )
         every { expansionRepository.save(capture(expansionSlot)) } answers { firstArg() }
-        every { catalogSourceFetcher.fetchCard("sv01-1") } returns sourceCardFixture()
-        every { catalogSourceFetcher.fetchCard("sv01-2") } returns sourceCardFixture().copy(
+        every { catalogSourcePort.fetchCard("sv01-1") } returns sourceCardFixture()
+        every { catalogSourcePort.fetchCard("sv01-2") } returns sourceCardFixture().copy(
             sourceId = "sv01-2",
             number = "2",
             name = "Raichu",
         )
-        every { cardNameTranslator.translate("Pikachu") } returns "피카츄"
-        every { cardNameTranslator.translate("Raichu") } returns "라이츄"
+        every { cardNameTranslationPort.translate("Pikachu") } returns "피카츄"
+        every { cardNameTranslationPort.translate("Raichu") } returns "라이츄"
         every { cardRepository.saveAll(capture(cardsSlot)) } answers { firstArg() }
 
-        catalogImporter.importExpansionAndCard(expansionImportCommandFixture())
+        catalogImportUseCase.importExpansionAndCard(expansionImportCommandFixture())
 
         with(expansionSlot.captured) {
             seriesId shouldBe series.id
@@ -130,12 +142,12 @@ class CatalogImporterTests {
         verify(exactly = 1) {
             seriesRepository.findBySourceId("sv")
             expansionRepository.existsBySourceId("sv01")
-            catalogSourceFetcher.fetchExpansion("sv01")
+            catalogSourcePort.fetchExpansion("sv01")
             expansionRepository.save(any())
-            catalogSourceFetcher.fetchCard("sv01-1")
-            catalogSourceFetcher.fetchCard("sv01-2")
-            cardNameTranslator.translate("Pikachu")
-            cardNameTranslator.translate("Raichu")
+            catalogSourcePort.fetchCard("sv01-1")
+            catalogSourcePort.fetchCard("sv01-2")
+            cardNameTranslationPort.translate("Pikachu")
+            cardNameTranslationPort.translate("Raichu")
             cardRepository.saveAll(any())
         }
     }
@@ -146,13 +158,13 @@ class CatalogImporterTests {
 
         stubExpansionImport(cardsSlot)
 
-        every { cardNameTranslator.translate("Pikachu") } returns null
+        every { cardNameTranslationPort.translate("Pikachu") } returns null
 
-        catalogImporter.importExpansionAndCard(expansionImportCommandFixture())
+        catalogImportUseCase.importExpansionAndCard(expansionImportCommandFixture())
 
         cardsSlot.captured.single().name shouldBe Name(en = "Pikachu", ko = null)
 
-        verify(exactly = 1) { cardNameTranslator.translate("Pikachu") }
+        verify(exactly = 1) { cardNameTranslationPort.translate("Pikachu") }
     }
 
     @Test
@@ -160,7 +172,7 @@ class CatalogImporterTests {
         every { seriesRepository.findBySourceId("sv") } returns null
 
         val exception = shouldThrow<DomainException> {
-            catalogImporter.importExpansionAndCard(expansionImportCommandFixture())
+            catalogImportUseCase.importExpansionAndCard(expansionImportCommandFixture())
         }
 
         exception.errorCode shouldBe CatalogImportErrorCode.SERIES_NOT_REGISTERED
@@ -172,7 +184,7 @@ class CatalogImporterTests {
         every { seriesRepository.findBySourceId("sv") } returns seriesFixture()
 
         val exception = shouldThrow<DomainException> {
-            catalogImporter.importExpansionAndCard(
+            catalogImportUseCase.importExpansionAndCard(
                 expansionImportCommandFixture(expansions = emptyList()),
             )
         }
@@ -188,7 +200,7 @@ class CatalogImporterTests {
         every { seriesRepository.findBySourceId("sv") } returns seriesFixture()
 
         val exception = shouldThrow<DomainException> {
-            catalogImporter.importExpansionAndCard(
+            catalogImportUseCase.importExpansionAndCard(
                 expansionImportCommandFixture(expansions = listOf(selection, selection)),
             )
         }
@@ -203,21 +215,53 @@ class CatalogImporterTests {
         every { expansionRepository.existsBySourceId("sv01") } returns true
 
         val exception = shouldThrow<DomainException> {
-            catalogImporter.importExpansionAndCard(expansionImportCommandFixture())
+            catalogImportUseCase.importExpansionAndCard(expansionImportCommandFixture())
         }
 
         exception.errorCode shouldBe CatalogImportErrorCode.EXPANSION_ALREADY_REGISTERED
 
-        verify(exactly = 0) { catalogSourceFetcher.fetchExpansion(any()) }
+        verify(exactly = 0) { catalogSourcePort.fetchExpansion(any()) }
+        verifyNoExpansionOrCardSaved()
+    }
+
+    @Test
+    fun `외부 데이터를 모두 조회하지 못하면 저장을 시작하지 않는다`() {
+        val selections = listOf(
+            expansionImportSelectionCommandFixture(),
+            expansionImportSelectionCommandFixture(
+                expansionSourceId = "sv02",
+                expansionNameKo = "팔데아의 진화",
+            ),
+        )
+
+        every { seriesRepository.findBySourceId("sv") } returns seriesFixture()
+        every { expansionRepository.existsBySourceId("sv01") } returns false
+        every { expansionRepository.existsBySourceId("sv02") } returns false
+        every { catalogSourcePort.fetchExpansion("sv01") } returns sourceExpansionFixture()
+        every { catalogSourcePort.fetchCard("sv01-1") } returns sourceCardFixture()
+        every { cardNameTranslationPort.translate("Pikachu") } returns "피카츄"
+        every { catalogSourcePort.fetchExpansion("sv02") } throws IllegalStateException("외부 조회 실패")
+
+        shouldThrow<IllegalStateException> {
+            catalogImportUseCase.importExpansionAndCard(
+                expansionImportCommandFixture(expansions = selections),
+            )
+        }
+
+        verify(exactly = 1) {
+            catalogSourcePort.fetchExpansion("sv01")
+            catalogSourcePort.fetchCard("sv01-1")
+            catalogSourcePort.fetchExpansion("sv02")
+        }
         verifyNoExpansionOrCardSaved()
     }
 
     private fun stubExpansionImport(cardsSlot: CapturingSlot<List<Card>>) {
         every { seriesRepository.findBySourceId("sv") } returns seriesFixture()
         every { expansionRepository.existsBySourceId("sv01") } returns false
-        every { catalogSourceFetcher.fetchExpansion("sv01") } returns sourceExpansionFixture()
+        every { catalogSourcePort.fetchExpansion("sv01") } returns sourceExpansionFixture()
         every { expansionRepository.save(any()) } answers { firstArg() }
-        every { catalogSourceFetcher.fetchCard("sv01-1") } returns sourceCardFixture()
+        every { catalogSourcePort.fetchCard("sv01-1") } returns sourceCardFixture()
         every { cardRepository.saveAll(capture(cardsSlot)) } answers { firstArg() }
     }
 

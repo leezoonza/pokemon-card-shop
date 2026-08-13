@@ -12,12 +12,11 @@ import io.kotest.matchers.shouldBe
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class SourceExpansionTests {
+class FetchedExpansionTests {
     @Test
-    fun `원본 확장팩을 확장팩 등록 정보로 변환한다`() {
-        val info = sourceExpansionFixture().toExpansionRegisterInfo(
+    fun `조회한 확장팩을 등록 정보로 변환한다`() {
+        val info = fetchedExpansion().toExpansionRegisterInfo(
             seriesId = 1L,
-            nameKo = "스칼렛&바이올렛",
             registeredAt = TEST_REGISTERED_AT,
         )
 
@@ -36,9 +35,8 @@ class SourceExpansionTests {
     @Test
     fun `로고가 없으면 확장팩 등록 정보로 변환하지 않는다`() {
         val exception = shouldThrow<DomainException> {
-            sourceExpansionFixture(logoUrl = null).toExpansionRegisterInfo(
+            fetchedExpansion(source = sourceExpansionFixture(logoUrl = null)).toExpansionRegisterInfo(
                 seriesId = 1L,
-                nameKo = "스칼렛&바이올렛",
                 registeredAt = TEST_REGISTERED_AT,
             )
         }
@@ -49,13 +47,21 @@ class SourceExpansionTests {
     @Test
     fun `한글 이름이 비어 있으면 확장팩 등록 정보로 변환하지 않는다`() {
         val exception = shouldThrow<DomainException> {
-            sourceExpansionFixture().toExpansionRegisterInfo(
+            fetchedExpansion(nameKo = " ").toExpansionRegisterInfo(
                 seriesId = 1L,
-                nameKo = " ",
                 registeredAt = TEST_REGISTERED_AT,
             )
         }
 
         exception.errorCode shouldBe CatalogImportErrorCode.EXPANSION_KOREAN_NAME_REQUIRED
     }
+
+    private fun fetchedExpansion(
+        source: SourceExpansion = sourceExpansionFixture(),
+        nameKo: String = "스칼렛&바이올렛",
+    ): FetchedExpansion = FetchedExpansion(
+        source = source,
+        nameKo = nameKo,
+        cards = emptyList(),
+    )
 }

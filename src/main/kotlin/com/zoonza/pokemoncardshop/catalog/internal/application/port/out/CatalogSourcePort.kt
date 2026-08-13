@@ -5,7 +5,7 @@ import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceEx
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceSeries
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SourceSeriesSummary
 
-interface CatalogSourceFetcher {
+interface CatalogSourcePort {
     fun fetchSeriesSummaries(): List<SourceSeriesSummary>
 
     fun fetchSeries(sourceId: String): SourceSeries

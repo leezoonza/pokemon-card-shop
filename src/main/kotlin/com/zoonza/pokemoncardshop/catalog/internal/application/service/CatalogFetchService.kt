@@ -1,22 +1,23 @@
 package com.zoonza.pokemoncardshop.catalog.internal.application.service
 
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionCandidateSummary
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesCandidateSummary
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogCandidateFinder
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourceFetcher
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogFetchUseCase
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CardNameTranslationPort
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogSourcePort
 import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
 import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
 import org.springframework.stereotype.Service
 
 @Service
-class CatalogImportQueryService(
+class CatalogFetchService(
     private val seriesRepository: SeriesRepository,
     private val expansionRepository: ExpansionRepository,
-    private val catalogSourceFetcher: CatalogSourceFetcher,
-) : CatalogCandidateFinder {
+    private val catalogSourcePort: CatalogSourcePort,
+    private val cardNameTranslationPort: CardNameTranslationPort,
+) : CatalogFetchUseCase {
 
-    override fun findSeries(): List<SeriesCandidateSummary> =
-        catalogSourceFetcher.fetchSeriesSummaries()
+    override fun fetchSeriesSummaries(): List<SeriesCandidateSummary> =
+        catalogSourcePort.fetchSeriesSummaries()
             .mapNotNull { series ->
                 val logoUrl = series.logoUrl
                     ?.takeIf(String::isNotBlank)
@@ -32,8 +33,8 @@ class CatalogImportQueryService(
                 )
             }
 
-    override fun findExpansions(seriesSourceId: String): List<ExpansionCandidateSummary> =
-        catalogSourceFetcher.fetchSeries(seriesSourceId)
+    override fun fetchExpansionSummaries(seriesSourceId: String): List<ExpansionCandidateSummary> =
+        catalogSourcePort.fetchSeries(seriesSourceId)
             .expansions
             .mapNotNull { expansion ->
                 val logoUrl = expansion.logoUrl
@@ -50,4 +51,19 @@ class CatalogImportQueryService(
                     registered = registered,
                 )
             }
+
+    fun fetchSeries(seriesSourceId: String): SourceSeries =
+        catalogSourcePort.fetchSeries(seriesSourceId)
+
+    fun fetchExpansion(expansionSourceId: String): SourceExpansion =
+        catalogSourcePort.fetchExpansion(expansionSourceId)
+
+    fun fetchCard(cardSourceId: String): FetchedCard {
+        val sourceCard = catalogSourcePort.fetchCard(cardSourceId)
+
+        return FetchedCard(
+            source = sourceCard,
+            nameKo = cardNameTranslationPort.translate(sourceCard.name),
+        )
+    }
 }

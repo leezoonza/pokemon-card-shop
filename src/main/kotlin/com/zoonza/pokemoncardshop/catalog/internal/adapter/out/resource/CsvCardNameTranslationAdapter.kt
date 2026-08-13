@@ -1,6 +1,6 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.resource
 
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CardNameTranslator
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CardNameTranslationPort
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVRecord
 import org.springframework.beans.factory.annotation.Value
@@ -11,7 +11,7 @@ import java.io.Reader
 @Component
 class CsvCardNameTranslationAdapter(
     @Value("classpath:catalog/card_name.csv") resource: Resource,
-) : CardNameTranslator {
+) : CardNameTranslationPort {
 
     private val koreanNamesByEnglishName: Map<String, String?> =
         resource.inputStream.bufferedReader(Charsets.UTF_8).use(::readTranslations)
