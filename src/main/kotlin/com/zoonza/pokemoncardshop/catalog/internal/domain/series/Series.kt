@@ -1,6 +1,5 @@
 package com.zoonza.pokemoncardshop.catalog.internal.domain.series
 
-import com.zoonza.pokemoncardshop.catalog.internal.domain.shared.Name
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import jakarta.persistence.*
 import java.time.Instant
@@ -15,18 +14,8 @@ class Series private constructor(
     @Column(unique = true, nullable = false)
     val sourceId: String,
 
-    @Embedded
-    @AttributeOverrides(
-        AttributeOverride(
-            name = "en",
-            column = Column(unique = true, nullable = false),
-        ),
-        AttributeOverride(
-            name = "ko",
-            column = Column(unique = true, nullable = false),
-        )
-    )
-    val name: Name,
+    @Column(unique = true, nullable = false)
+    val name: String,
 
     @Column(nullable = false)
     val releaseDate: LocalDate,
@@ -40,16 +29,12 @@ class Series private constructor(
     companion object {
         fun register(
             sourceId: String,
-            name: Name,
+            name: String,
             releaseDate: LocalDate,
             registeredAt: Instant
         ): Series {
-            if (name.en.isBlank()) {
-                throw DomainException(SeriesErrorCode.ENGLISH_NAME_REQUIRED)
-            }
-
-            if (name.ko.isNullOrBlank()) {
-                throw DomainException(SeriesErrorCode.KOREAN_NAME_REQUIRED)
+            if (name.isBlank()) {
+                throw DomainException(SeriesErrorCode.NAME_REQUIRED)
             }
 
             return Series(

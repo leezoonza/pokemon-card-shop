@@ -22,13 +22,9 @@ data class ExpansionImportRequest(
 data class ExpansionImportSelection(
     @field:NotBlank(message = "확장팩 식별자는 비어 있을 수 없습니다.")
     val expansionSourceId: String,
-
-    @field:NotBlank(message = "확장팩 한글명의 입력해 주세요.")
-    val expansionNameKo: String,
 ) {
     fun toCommand(): ExpansionImportSelectionCommand =
         ExpansionImportSelectionCommand(
             expansionSourceId = expansionSourceId,
-            expansionNameKo = expansionNameKo,
         )
 }

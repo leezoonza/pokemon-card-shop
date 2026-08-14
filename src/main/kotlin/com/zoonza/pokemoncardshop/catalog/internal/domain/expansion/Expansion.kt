@@ -1,6 +1,5 @@
 package com.zoonza.pokemoncardshop.catalog.internal.domain.expansion
 
-import com.zoonza.pokemoncardshop.catalog.internal.domain.shared.Name
 import com.zoonza.pokemoncardshop.common.error.DomainException
 import jakarta.persistence.*
 import java.time.Instant
@@ -18,18 +17,8 @@ class Expansion private constructor(
     @Column(unique = true, nullable = false)
     val sourceId: String,
 
-    @Embedded
-    @AttributeOverrides(
-        AttributeOverride(
-            name = "en",
-            column = Column(unique = true, nullable = false),
-        ),
-        AttributeOverride(
-            name = "ko",
-            column = Column(unique = true, nullable = false),
-        )
-    )
-    val name: Name,
+    @Column(unique = true, nullable = false)
+    val name: String,
 
     @Embedded
     val count: CardCount,
@@ -48,12 +37,8 @@ class Expansion private constructor(
 ) {
     companion object {
         fun register(info: ExpansionRegisterInfo): Expansion {
-            if (info.name.en.isBlank()) {
-                throw DomainException(ExpansionErrorCode.ENGLISH_NAME_REQUIRED)
-            }
-
-            if (info.name.ko.isNullOrBlank()) {
-                throw DomainException(ExpansionErrorCode.KOREAN_NAME_REQUIRED)
+            if (info.name.isBlank()) {
+                throw DomainException(ExpansionErrorCode.NAME_REQUIRED)
             }
 
             return Expansion(

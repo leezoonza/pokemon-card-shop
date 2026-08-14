@@ -7,12 +7,6 @@ enum class CatalogImportErrorCode(
     override val message: String,
     override val status: Int,
 ) : ErrorCode {
-    CARD_IMAGE_REQUIRED(
-        "CATALOG-IMPORT-001",
-        "이미지가 없는 카드는 등록할 수 없습니다.",
-        502,
-    ),
-
     DUPLICATE_EXPANSION_SELECTION(
         "CATALOG-IMPORT-002",
         "동일한 확장팩을 중복으로 선택할 수 없습니다.",
@@ -29,12 +23,6 @@ enum class CatalogImportErrorCode(
         "CATALOG-IMPORT-004",
         "이미 등록된 확장팩입니다.",
         409,
-    ),
-
-    EXPANSION_KOREAN_NAME_REQUIRED(
-        "CATALOG-IMPORT-005",
-        "확장팩의 한글명을 입력해 주세요.",
-        400,
     ),
 
     EXPANSION_LOGO_REQUIRED(

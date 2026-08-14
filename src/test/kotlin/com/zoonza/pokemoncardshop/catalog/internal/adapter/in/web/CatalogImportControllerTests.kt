@@ -61,7 +61,6 @@ class CatalogImportControllerTests {
             content = """
                 {
                   "seriesSourceId": "sv",
-                  "seriesNameKo": "스칼렛&바이올렛",
                   "seriesReleaseDate": "2023-03-31"
                 }
             """.trimIndent()
@@ -103,7 +102,6 @@ class CatalogImportControllerTests {
                 expansionImportSelectionCommandFixture(),
                 expansionImportSelectionCommandFixture(
                     expansionSourceId = "sv02",
-                    expansionNameKo = "트리플렛비트",
                 ),
             ),
         )
@@ -115,12 +113,10 @@ class CatalogImportControllerTests {
                 {
                   "expansions": [
                     {
-                      "expansionSourceId": "sv01",
-                      "expansionNameKo": "스칼렛&바이올렛"
+                      "expansionSourceId": "sv01"
                     },
                     {
-                      "expansionSourceId": "sv02",
-                      "expansionNameKo": "트리플렛비트"
+                      "expansionSourceId": "sv02"
                     }
                   ]
                 }

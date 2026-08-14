@@ -43,6 +43,7 @@ class CatalogJpaRepositoryTests @Autowired constructor(
             cardFixture(
                 cardRegisterInfoFixture().copy(
                     expansionId = expansion.id,
+                    imageUrl = null,
                 ),
             ),
         )
@@ -60,6 +61,7 @@ class CatalogJpaRepositoryTests @Autowired constructor(
         foundExpansion.seriesId shouldBe series.id
         foundExpansion.image shouldBe ExpansionImage("https://image/sv01.png", "")
         foundCard.expansionId shouldBe expansion.id
+        foundCard.imageUrl shouldBe null
         foundCard.variants shouldBe CardVariants(holo = true, reverse = true)
     }
 }

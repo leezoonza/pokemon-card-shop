@@ -5,7 +5,7 @@ import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesCa
 data class SeriesCandidateResponse(
     val sourceId: String,
     val name: String,
-    val logoUrl: String,
+    val logoUrl: String?,
     val registered: Boolean,
 ) {
     companion object {

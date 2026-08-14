@@ -8,15 +8,9 @@ enum class ExpansionErrorCode(
     override val status: Int,
 ) : ErrorCode {
 
-    ENGLISH_NAME_REQUIRED(
+    NAME_REQUIRED(
         "EXPANSION-001",
-        "확장팩의 영문명은 필수입니다.",
-        400,
-    ),
-
-    KOREAN_NAME_REQUIRED(
-        "EXPANSION-002",
-        "확장팩의 한글명은 필수입니다.",
+        "확장팩 이름은 필수입니다.",
         400,
     ),
 

@@ -15,20 +15,16 @@ val TEST_REGISTERED_AT: Instant = Instant.parse("2026-08-12T03:00:00Z")
 
 fun seriesImportCommandFixture(
     seriesSourceId: String = "sv",
-    seriesNameKo: String = "스칼렛&바이올렛",
     seriesReleaseDate: LocalDate = LocalDate.of(2023, 3, 31),
 ): SeriesImportCommand = SeriesImportCommand(
     seriesSourceId = seriesSourceId,
-    seriesNameKo = seriesNameKo,
     seriesReleaseDate = seriesReleaseDate,
 )
 
 fun expansionImportSelectionCommandFixture(
     expansionSourceId: String = "sv01",
-    expansionNameKo: String = "스칼렛&바이올렛",
 ): ExpansionImportSelectionCommand = ExpansionImportSelectionCommand(
     expansionSourceId = expansionSourceId,
-    expansionNameKo = expansionNameKo,
 )
 
 fun expansionImportCommandFixture(
@@ -66,18 +62,15 @@ fun sourceExpansionSummaryFixture(
 fun sourceSeriesFixture(
     sourceId: String = "sv",
     name: String = "Scarlet & Violet",
-    logoUrl: String? = "https://image/sv.png",
     expansions: List<SourceExpansionSummary> = listOf(sourceExpansionSummaryFixture()),
 ): SourceSeries = SourceSeries(
     sourceId = sourceId,
     name = name,
-    logoUrl = logoUrl,
     expansions = expansions,
 )
 
 fun sourceExpansionFixture(
     sourceId: String = "sv01",
-    seriesSourceId: String = "sv",
     name: String = "Scarlet & Violet",
     logoUrl: String? = "https://image/sv01.png",
     symbolUrl: String? = "https://image/sv01-symbol.png",
@@ -87,7 +80,6 @@ fun sourceExpansionFixture(
     cardSourceIds: List<String> = listOf("sv01-1"),
 ): SourceExpansion = SourceExpansion(
     sourceId = sourceId,
-    seriesSourceId = seriesSourceId,
     name = name,
     logoUrl = logoUrl,
     symbolUrl = symbolUrl,
@@ -99,9 +91,8 @@ fun sourceExpansionFixture(
 
 fun sourceCardFixture(): SourceCard = SourceCard(
     sourceId = "sv01-1",
-    expansionSourceId = "sv01",
     category = "Pokemon",
-    number = "1",
+    localId = "1",
     name = "Pikachu",
     imageUrl = "https://image/sv01-1/high.webp",
     illustrator = null,
@@ -117,7 +108,7 @@ fun sourceCardFixture(): SourceCard = SourceCard(
 
 fun seriesFixture(
     sourceId: String = "sv",
-    name: Name = Name(en = "Scarlet & Violet", ko = "스칼렛&바이올렛"),
+    name: String = "Scarlet & Violet",
     releaseDate: LocalDate = LocalDate.of(2023, 3, 31),
     registeredAt: Instant = TEST_REGISTERED_AT,
 ): Series = Series.register(
@@ -130,7 +121,7 @@ fun seriesFixture(
 fun expansionFixture(
     seriesId: Long = 1L,
     sourceId: String = "sv01",
-    name: Name = Name(en = "Scarlet & Violet", ko = "스칼렛&바이올렛"),
+    name: String = "Scarlet & Violet",
     count: CardCount = CardCount(total = 258, official = 198),
     image: ExpansionImage = ExpansionImage(
         logoUrl = "https://image/sv01.png",

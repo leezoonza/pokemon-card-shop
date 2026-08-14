@@ -45,8 +45,8 @@ class Card private constructor(
     @Enumerated(EnumType.STRING)
     val category: CardCategory,
 
-    @Column(nullable = false)
-    val imageUrl: String,
+    @Column
+    val imageUrl: String?,
 
     @Column(nullable = false)
     val illustrator: String,
@@ -57,25 +57,6 @@ class Card private constructor(
 
     @Embedded
     val variants: CardVariants,
-
-    @ElementCollection
-    @CollectionTable(
-        name = "card_abilities",
-        joinColumns = [JoinColumn(name = "card_id")],
-    )
-    val abilities: MutableList<Ability> = mutableListOf(),
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "pokemon_detail_id", unique = true)
-    val pokemonDetail: PokemonDetail?,
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "trainer_detail_id", unique = true)
-    val trainerDetail: TrainerDetail?,
-
-    @OneToOne(fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    @JoinColumn(name = "energy_detail_id", unique = true)
-    val energyDetail: EnergyDetail?,
 
     @Column(nullable = false)
     val registeredAt: Instant,
@@ -99,31 +80,9 @@ class Card private constructor(
                 illustrator = info.illustrator ?: "Unknown",
                 rarity = info.rarity,
                 variants = info.variants,
-                abilities = info.abilities.toMutableList(),
-                pokemonDetail = createPokemonDetail(info),
-                trainerDetail = createTrainerDetail(info),
-                energyDetail = createEnergyDetail(info),
                 registeredAt = info.registeredAt,
                 updatedAt = info.registeredAt,
             )
-        }
-
-        private fun createPokemonDetail(info: CardRegisterInfo): PokemonDetail? {
-            if (info.category != CardCategory.POKEMON) return null
-
-            return info.pokemonDetail?.let(PokemonDetail::register)
-        }
-
-        private fun createTrainerDetail(info: CardRegisterInfo): TrainerDetail? {
-            if (info.category != CardCategory.TRAINER) return null
-
-            return info.trainerDetail?.let(TrainerDetail::register)
-        }
-
-        private fun createEnergyDetail(info: CardRegisterInfo): EnergyDetail? {
-            if (info.category != CardCategory.ENERGY) return null
-
-            return info.energyDetail?.let(EnergyDetail::register)
         }
     }
 }

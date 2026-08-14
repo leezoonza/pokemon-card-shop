@@ -18,17 +18,13 @@ class CatalogFetchService(
 
     override fun fetchSeriesSummaries(): List<SeriesCandidateSummary> =
         catalogSourcePort.fetchSeriesSummaries()
-            .mapNotNull { series ->
-                val logoUrl = series.logoUrl
-                    ?.takeIf(String::isNotBlank)
-                    ?: return@mapNotNull null
-
+            .map { series ->
                 val registered = seriesRepository.existsBySourceId(series.sourceId)
 
                 SeriesCandidateSummary(
                     sourceId = series.sourceId,
                     name = series.name,
-                    logoUrl = logoUrl,
+                    logoUrl = series.logoUrl,
                     registered = registered,
                 )
             }
@@ -36,17 +32,13 @@ class CatalogFetchService(
     override fun fetchExpansionSummaries(seriesSourceId: String): List<ExpansionCandidateSummary> =
         catalogSourcePort.fetchSeries(seriesSourceId)
             .expansions
-            .mapNotNull { expansion ->
-                val logoUrl = expansion.logoUrl
-                    ?.takeIf(String::isNotBlank)
-                    ?: return@mapNotNull null
-
+            .map { expansion ->
                 val registered = expansionRepository.existsBySourceId(expansion.sourceId)
 
                 ExpansionCandidateSummary(
                     sourceId = expansion.sourceId,
                     name = expansion.name,
-                    logoUrl = logoUrl,
+                    logoUrl = expansion.logoUrl,
                     symbolUrl = expansion.symbolUrl?.takeIf(String::isNotBlank),
                     registered = registered,
                 )

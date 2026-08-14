@@ -64,7 +64,7 @@ class CatalogImportUseCaseTests {
 
         with(seriesSlot.captured) {
             sourceId shouldBe "sv"
-            name shouldBe Name(en = "Scarlet & Violet", ko = "스칼렛&바이올렛")
+            name shouldBe "Scarlet & Violet"
             releaseDate shouldBe LocalDate.of(2023, 3, 31)
             registeredAt shouldBe TEST_REGISTERED_AT
         }
@@ -104,8 +104,9 @@ class CatalogImportUseCaseTests {
         every { catalogSourcePort.fetchCard("sv01-1") } returns sourceCardFixture()
         every { catalogSourcePort.fetchCard("sv01-2") } returns sourceCardFixture().copy(
             sourceId = "sv01-2",
-            number = "2",
+            localId = "2",
             name = "Raichu",
+            imageUrl = null,
         )
         every { cardNameTranslationPort.translate("Pikachu") } returns "피카츄"
         every { cardNameTranslationPort.translate("Raichu") } returns "라이츄"
@@ -116,7 +117,7 @@ class CatalogImportUseCaseTests {
         with(expansionSlot.captured) {
             seriesId shouldBe series.id
             sourceId shouldBe "sv01"
-            name shouldBe Name(en = "Scarlet & Violet", ko = "스칼렛&바이올렛")
+            name shouldBe "Scarlet & Violet"
             count shouldBe CardCount(total = 258, official = 198)
             image shouldBe ExpansionImage(
                 logoUrl = "https://image/sv01.png",
@@ -138,6 +139,7 @@ class CatalogImportUseCaseTests {
         }
 
         cardsSlot.captured[1].name shouldBe Name(en = "Raichu", ko = "라이츄")
+        cardsSlot.captured[1].imageUrl shouldBe null
 
         verify(exactly = 1) {
             seriesRepository.findBySourceId("sv")
@@ -230,7 +232,6 @@ class CatalogImportUseCaseTests {
             expansionImportSelectionCommandFixture(),
             expansionImportSelectionCommandFixture(
                 expansionSourceId = "sv02",
-                expansionNameKo = "팔데아의 진화",
             ),
         )
 

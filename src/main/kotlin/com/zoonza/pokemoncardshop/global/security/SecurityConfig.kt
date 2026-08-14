@@ -45,8 +45,8 @@ class SecurityConfig(
                     "/oauth2/authorization/**",
                     "/login/oauth2/code/**",
                     "/api/auth/**",
-                    "/api/external-accounts",
                     "/api/members/nickname",
+                    "/api/catalog/**",
                     "/error",
                 ).permitAll()
                 auth.requestMatchers("/api/admin/**").hasRole("ADMIN")

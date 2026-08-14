@@ -5,7 +5,7 @@ import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.Expansio
 data class ExpansionCandidateResponse(
     val sourceId: String,
     val name: String,
-    val logoUrl: String,
+    val logoUrl: String?,
     val symbolUrl: String?,
     val registered: Boolean,
 ) {

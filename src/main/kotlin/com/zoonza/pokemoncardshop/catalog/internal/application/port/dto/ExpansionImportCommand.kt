@@ -8,5 +8,4 @@ data class ExpansionImportCommand(
 
 data class ExpansionImportSelectionCommand(
     val expansionSourceId: String,
-    val expansionNameKo: String,
 )

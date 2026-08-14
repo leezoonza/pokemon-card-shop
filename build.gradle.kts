@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm") version "2.3.21"
+    kotlin("kapt") version "2.3.21"
     kotlin("plugin.spring") version "2.3.21"
     kotlin("plugin.jpa") version "2.3.21"
     id("org.springframework.boot") version "4.1.0"
@@ -28,6 +29,8 @@ dependencies {
 
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-data-redis")
+    implementation("io.github.openfeign.querydsl:querydsl-jpa:7.5")
+    kapt("io.github.openfeign.querydsl:querydsl-apt:7.5:jakarta")
 
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-security-oauth2-client")

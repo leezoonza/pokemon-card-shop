@@ -60,7 +60,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
             Duration.ofMinutes(10),
         )
 
-        val result = mockMvc.post("/api/external-accounts") {
+        val result = mockMvc.post("/api/auth/signup") {
             with(csrf())
             cookie(
                 MockCookie(
@@ -95,6 +95,7 @@ class AuthSignupIntegrationTests @Autowired constructor(
             .substringBefore(';')
 
         identityTicketCookie.shouldContain("Max-Age=0")
+        identityTicketCookie.shouldContain("Path=/api/auth")
         refreshTokenCookie.shouldContain("HttpOnly")
         refreshTokenCookie.shouldContain("Path=/api/auth")
 

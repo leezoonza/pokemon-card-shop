@@ -52,6 +52,15 @@ class HttpSecurityIntegrationTests @Autowired constructor(
     }
 
     @Test
+    fun `카탈로그 조회 경로는 인증 없이 접근한다`() {
+        mockMvc.get("/api/catalog/expansions")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+            }
+    }
+
+    @Test
     fun `일반 회원은 관리자 API에 접근할 수 없다`() {
         mockMvc.get("/api/admin/catalog/imports") {
             with(jwt().authorities(SimpleGrantedAuthority("ROLE_MEMBER")))

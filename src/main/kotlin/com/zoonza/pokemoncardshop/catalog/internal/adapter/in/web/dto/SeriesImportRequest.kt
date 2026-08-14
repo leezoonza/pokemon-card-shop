@@ -9,16 +9,12 @@ data class SeriesImportRequest(
     @field:NotBlank(message = "시리즈를 선택해 주세요.")
     val seriesSourceId: String,
 
-    @field:NotBlank(message = "시리즈의 한글명을 입력해 주세요.")
-    val seriesNameKo: String,
-
     @field:NotNull(message = "시리즈의 출시일을 입력해 주세요.")
     val seriesReleaseDate: LocalDate,
 ) {
     fun toCommand(): SeriesImportCommand =
         SeriesImportCommand(
             seriesSourceId = seriesSourceId,
-            seriesNameKo = seriesNameKo,
             seriesReleaseDate = seriesReleaseDate,
         )
 }

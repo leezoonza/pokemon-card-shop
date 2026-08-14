@@ -52,16 +52,20 @@ class TcgdexCatalogSourceAdapter(
         }
 
     override fun fetchCard(sourceId: String): SourceCard =
-        fetchSource {
-            client.fetchCard(sourceId)
-                ?.toSourceCard()
-                ?: sourceNotFound()
+        try {
+            fetchSource {
+                client.fetchCard(sourceId)
+                    ?.toSourceCard()
+                    ?: sourceNotFound()
+            }
+        } catch (e: Exception) {
+            logger.warn { sourceId }
+            throw e
         }
 
     private fun Serie.toSourceSeries(): SourceSeries = SourceSeries(
         sourceId = id,
         name = name,
-        logoUrl = getLogoUrl(Extension.PNG),
         expansions = sets.map { expansion ->
             SourceExpansionSummary(
                 sourceId = expansion.id,
@@ -74,7 +78,6 @@ class TcgdexCatalogSourceAdapter(
 
     private fun Set.toSourceExpansion(): SourceExpansion = SourceExpansion(
         sourceId = id.requiredSourceValue(),
-        seriesSourceId = serie.id,
         name = name.requiredSourceValue(),
         logoUrl = getLogoUrl(Extension.PNG),
         symbolUrl = getSymbolUrl(Extension.PNG),
@@ -89,9 +92,8 @@ class TcgdexCatalogSourceAdapter(
 
         return SourceCard(
             sourceId = id,
-            expansionSourceId = set.id,
             category = category,
-            number = localId,
+            localId = localId,
             name = name,
             imageUrl = image?.let { getImageUrl(Quality.HIGH, Extension.WEBP) },
             illustrator = illustrator,
@@ -103,44 +105,6 @@ class TcgdexCatalogSourceAdapter(
                 reverse = sourceVariants?.reverse ?: false,
                 wPromo = sourceVariants?.wPromo ?: false,
             ),
-            abilities = abilities.orEmpty().map {
-                SourceAbility(
-                    type = it.type,
-                    name = it.name,
-                    effect = it.effect,
-                )
-            },
-            dexIds = dexId.orEmpty(),
-            hp = hp,
-            types = types.orEmpty(),
-            evolveFrom = evolveFrom,
-            description = description,
-            stage = stage,
-            suffix = suffix,
-            attacks = attacks.orEmpty().map { attack ->
-                SourceAttack(
-                    name = attack.name,
-                    cost = attack.cost.orEmpty(),
-                    effect = attack.effect,
-                    damage = attack.damage,
-                )
-            },
-            weaknesses = weaknesses.orEmpty().map { weakness ->
-                SourceWeakRes(
-                    type = weakness.type,
-                    value = weakness.value,
-                )
-            },
-            resistances = resistances.orEmpty().map { resistance ->
-                SourceWeakRes(
-                    type = resistance.type,
-                    value = resistance.value,
-                )
-            },
-            retreat = retreat,
-            effect = effect,
-            trainerType = trainerType,
-            energyType = energyType,
         )
     }
 

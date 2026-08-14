@@ -8,15 +8,9 @@ enum class SeriesErrorCode(
     override val status: Int,
 ) : ErrorCode {
 
-    ENGLISH_NAME_REQUIRED(
+    NAME_REQUIRED(
         "SERIES-001",
-        "시리즈의 영문명은 필수입니다.",
-        400,
-    ),
-
-    KOREAN_NAME_REQUIRED(
-        "SERIES-002",
-        "시리즈의 한글명은 필수입니다.",
+        "시리즈 이름은 필수입니다.",
         400,
     ),
 }

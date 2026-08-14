@@ -43,7 +43,6 @@ class CatalogImportFacade(
 
             FetchedExpansion(
                 source = sourceExpansion,
-                nameKo = selectedExpansion.expansionNameKo,
                 cards = cards,
             )
         }

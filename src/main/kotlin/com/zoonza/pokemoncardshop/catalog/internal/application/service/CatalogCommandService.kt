@@ -10,7 +10,6 @@ import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.Expansion
 import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.ExpansionRepository
 import com.zoonza.pokemoncardshop.catalog.internal.domain.series.Series
 import com.zoonza.pokemoncardshop.catalog.internal.domain.series.SeriesRepository
-import com.zoonza.pokemoncardshop.catalog.internal.domain.shared.Name
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
@@ -25,8 +24,8 @@ class CatalogCommandService(
 ) {
     fun registerSeries(command: SeriesImportCommand, sourceSeries: SourceSeries) {
         val series = Series.register(
-            sourceId = command.seriesSourceId,
-            name = Name(sourceSeries.name, command.seriesNameKo),
+            sourceId = sourceSeries.sourceId,
+            name = sourceSeries.name,
             releaseDate = command.seriesReleaseDate,
             registeredAt = Instant.now(clock),
         )
