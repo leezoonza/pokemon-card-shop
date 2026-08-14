@@ -1,8 +1,10 @@
 package com.zoonza.pokemoncardshop.catalog.internal.adapter.`in`.web
 
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CardItem
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionItem
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesWithExpansions
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogQueryUseCase
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -100,5 +102,48 @@ class CatalogControllerTests {
             }
 
         verify(exactly = 1) { catalogQueryUseCase.getSeriesWithExpansions() }
+    }
+
+    @Test
+    fun `확장팩의 카드 목록을 응답한다`() {
+        every { catalogQueryUseCase.getCards(10L) } returns listOf(
+            CardItem(
+                cardId = 1L,
+                nameEn = "Pikachu",
+                nameKo = "피카츄",
+                rarity = CardRarity.RARE,
+                imageUrl = "https://image/sv01-1/high.webp",
+                printNumber = "1/198",
+            ),
+            CardItem(
+                cardId = 2L,
+                nameEn = "Raichu",
+                nameKo = null,
+                rarity = CardRarity.UNCOMMON,
+                imageUrl = null,
+                printNumber = "2/198",
+            ),
+        )
+
+        mockMvc.get("/api/catalog/expansion/10")
+            .andExpect {
+                status { isOk() }
+                jsonPath("$.success") { value(true) }
+                jsonPath("$.data.length()") { value(2) }
+                jsonPath("$.data[0].cardId") { value(1) }
+                jsonPath("$.data[0].nameEn") { value("Pikachu") }
+                jsonPath("$.data[0].nameKo") { value("피카츄") }
+                jsonPath("$.data[0].rarity") { value("Rare") }
+                jsonPath("$.data[0].imageUrl") { value("https://image/sv01-1/high.webp") }
+                jsonPath("$.data[0].printNumber") { value("1/198") }
+                jsonPath("$.data[1].cardId") { value(2) }
+                jsonPath("$.data[1].nameEn") { value("Raichu") }
+                jsonPath("$.data[1].nameKo") { isEmpty() }
+                jsonPath("$.data[1].rarity") { value("Uncommon") }
+                jsonPath("$.data[1].imageUrl") { isEmpty() }
+                jsonPath("$.data[1].printNumber") { value("2/198") }
+            }
+
+        verify(exactly = 1) { catalogQueryUseCase.getCards(10L) }
     }
 }

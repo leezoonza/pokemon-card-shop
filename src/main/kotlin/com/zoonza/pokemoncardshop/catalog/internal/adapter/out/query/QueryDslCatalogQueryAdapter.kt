@@ -2,8 +2,10 @@ package com.zoonza.pokemoncardshop.catalog.internal.adapter.out.query
 
 import com.querydsl.core.types.Projections
 import com.querydsl.jpa.impl.JPAQueryFactory
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CardRow
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesExpansionRow
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogQueryPort
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.QCard
 import com.zoonza.pokemoncardshop.catalog.internal.domain.expansion.QExpansion
 import com.zoonza.pokemoncardshop.catalog.internal.domain.series.QSeries
 import org.springframework.stereotype.Component
@@ -18,6 +20,7 @@ class QueryDslCatalogQueryAdapter(
 ) : CatalogQueryPort {
     private val series = QSeries.series
     private val expansion = QExpansion.expansion
+    private val card = QCard.card
 
     override fun findAllExpansionRows(): List<SeriesExpansionRow> {
         val now = Instant.now(clock)
@@ -44,6 +47,28 @@ class QueryDslCatalogQueryAdapter(
                 expansion.releaseDate.desc(),
                 expansion.id.desc()
             )
+            .fetch()
+    }
+
+    override fun findCardRowsByCondition(expansionId: Long): List<CardRow> {
+        return jpaQueryFactory
+            .select(
+                Projections.constructor(
+                    CardRow::class.java,
+                    card.id,
+                    card.name.en,
+                    card.name.ko,
+                    card.rarity,
+                    card.imageUrl,
+                    card.localId
+                        .concat("/")
+                        .concat(expansion.count.official.stringValue()),
+                )
+            )
+            .from(card)
+            .join(expansion).on(card.expansionId.eq(expansion.id))
+            .where(card.expansionId.eq(expansionId))
+            .orderBy(card.localId.asc())
             .fetch()
     }
 }

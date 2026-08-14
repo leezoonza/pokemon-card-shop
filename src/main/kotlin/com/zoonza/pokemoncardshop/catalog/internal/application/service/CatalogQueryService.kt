@@ -1,5 +1,6 @@
 package com.zoonza.pokemoncardshop.catalog.internal.application.service
 
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.CardItem
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionItem
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesWithExpansions
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`.CatalogQueryUseCase
@@ -32,4 +33,18 @@ class CatalogQueryService(
                     }
                 )
             }
+
+    override fun getCards(expansionId: Long): List<CardItem> =
+        catalogQueryPort.findCardRowsByCondition(expansionId)
+            .map { row ->
+                CardItem(
+                    cardId = row.cardId,
+                    nameEn = row.nameEn,
+                    nameKo = row.nameKo,
+                    rarity = row.rarity,
+                    imageUrl = row.imageUrl,
+                    printNumber = row.printNumber,
+                )
+            }
+
 }

@@ -1,10 +1,9 @@
 package com.zoonza.pokemoncardshop.catalog.internal.application.port.`in`
 
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.ExpansionItem
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesExpansionRow
-import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.SeriesWithExpansions
+import com.zoonza.pokemoncardshop.catalog.internal.application.port.dto.*
 import com.zoonza.pokemoncardshop.catalog.internal.application.port.out.CatalogQueryPort
 import com.zoonza.pokemoncardshop.catalog.internal.application.service.CatalogQueryService
+import com.zoonza.pokemoncardshop.catalog.internal.domain.card.CardRarity
 import io.kotest.matchers.collections.shouldContainExactly
 import io.mockk.every
 import io.mockk.mockk
@@ -84,6 +83,50 @@ class CatalogQueryUseCaseTests {
             ),
         )
         verify(exactly = 1) { catalogQueryPort.findAllExpansionRows() }
+    }
+
+    @Test
+    fun `확장팩의 카드 조회 행을 카드 목록으로 변환한다`() {
+        every { catalogQueryPort.findCardRowsByCondition(10L) } returns listOf(
+            CardRow(
+                cardId = 1L,
+                nameEn = "Pikachu",
+                nameKo = "피카츄",
+                rarity = CardRarity.RARE,
+                imageUrl = "https://image/sv01-1/high.webp",
+                printNumber = "1/198",
+            ),
+            CardRow(
+                cardId = 2L,
+                nameEn = "Raichu",
+                nameKo = null,
+                rarity = CardRarity.UNCOMMON,
+                imageUrl = null,
+                printNumber = "2/198",
+            ),
+        )
+
+        val result = catalogQueryUseCase.getCards(10L)
+
+        result shouldContainExactly listOf(
+            CardItem(
+                cardId = 1L,
+                nameEn = "Pikachu",
+                nameKo = "피카츄",
+                rarity = CardRarity.RARE,
+                imageUrl = "https://image/sv01-1/high.webp",
+                printNumber = "1/198",
+            ),
+            CardItem(
+                cardId = 2L,
+                nameEn = "Raichu",
+                nameKo = null,
+                rarity = CardRarity.UNCOMMON,
+                imageUrl = null,
+                printNumber = "2/198",
+            ),
+        )
+        verify(exactly = 1) { catalogQueryPort.findCardRowsByCondition(10L) }
     }
 
     private fun seriesExpansionRow(
